@@ -4,12 +4,16 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
 const int WIDTH = 1800;
 const int HEIGHT = 1200;
 
 int main() {
-    glewExperimental = true;  // Do we need this here?
-
+    // Initializing GLFW
     if (!glfwInit()) {
         fprintf(stderr, "Failed to Initialize GLFW. Wtf yu durn fam?!\n");
         return -1;
@@ -31,7 +35,6 @@ int main() {
     }
 
     glfwMakeContextCurrent(window);
-    glewExperimental = true; // Do we need this again?
 
     if (glewInit() != GLEW_OK) {
         fprintf(stderr, "Failed to Initialize GLEW. Fuck!\n");
@@ -40,6 +43,17 @@ int main() {
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
+    // Working with Shaders
+    std::ifstream file;
+    std::stringstream bufferedLines;
+    std::string line;
+
+    file.open("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/vertex.glsl");
+    while (std::getline(file, line)) {
+        std::cout << line << std::endl;
+    }
+
+    // Main OpenGL Render Loop
     do {
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -50,5 +64,6 @@ int main() {
         glfwWindowShouldClose(window) == 0
     );
 
+    glfwTerminate();
     return 0;
 }
