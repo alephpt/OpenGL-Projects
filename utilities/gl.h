@@ -1,11 +1,28 @@
+#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 
 #include <iostream>
 #include <vector>
+
+void printWorkGroupInfo() {
+    int workGroupSizes[3] = { 0 };
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &workGroupSizes[0]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &workGroupSizes[1]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &workGroupSizes[2]);
+    int workGroupCounts[3] = { 0 };
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &workGroupCounts[0]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &workGroupCounts[1]);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &workGroupCounts[2]);
+
+    std::cout << "Max Compute Workgroup Invocatios: " << GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS << std::endl;
+    for (int i = 0; i < 3; i++) {
+        std::cout << "Workgroup Size" << workGroupSizes[i] << std::endl;
+        std::cout << "Workgroup Count" << workGroupCounts[i] << std::endl;
+    }
+}
 
 // Initializing GLFW
 int init(GLFWwindow* window, const int WIDTH, const int HEIGHT) {

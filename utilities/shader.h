@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -24,8 +25,9 @@ unsigned int makeShader( const std::string& filepath, unsigned int mod_type) {
 
 unsigned int initShaders() {
     std::vector<unsigned int> shader_modules;
-    shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/vertex.glsl", GL_VERTEX_SHADER));
-    shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/fragment.glsl", GL_FRAGMENT_SHADER));
-    
+
+    //shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/vertex.glsl", GL_VERTEX_SHADER));
+    //shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/fragment.glsl", GL_FRAGMENT_SHADER));
+
     return createShaderProgram(shader_modules);
 }
