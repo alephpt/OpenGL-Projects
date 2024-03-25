@@ -1,5 +1,6 @@
+#pragma once
 #include <GL/glew.h>
-
+#include <GLFW/glfw3.h>
 // This is the equivalent of a texture. Let's be poetic.
 
 /*
@@ -12,4 +13,4 @@
 class Reflection {
     public:
         unsigned int coalesce(GLFWwindow* window);
-}
+};

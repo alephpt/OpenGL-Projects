@@ -1,4 +1,5 @@
 #include "./choreographer.h"
+#include "choreographer.h"
 
 World::World() { initGLFW(); }
 World::~World() { 
@@ -74,6 +75,11 @@ void World::initGLFW() {
     }
 }
 
+void World::createChannel() {
+    voyager = new Receiver(window, instance, shader_modules);
+    manifestation = new Transmission(apparition, shader_modules);
+}
+
 void World::logWorkGroupInfo(){
     int workGroupSizes[3] = { 0 };
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &workGroupSizes[0]);
@@ -89,4 +95,8 @@ void World::logWorkGroupInfo(){
         std::cout << "Workgroup Size" << workGroupSizes[i] << std::endl;
         std::cout << "Workgroup Count" << workGroupCounts[i] << std::endl;
     }
+}
+
+void World::sync()
+{
 }

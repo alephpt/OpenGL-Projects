@@ -1,5 +1,7 @@
 #pragma once
 #include "../utilities/entities.h"
+#include "./instance.h"
+#include <cstdint>
 
 // The Manifest is the Factory that Instantiates the World Contents
 class Manifest {
@@ -7,7 +9,7 @@ class Manifest {
         Manifest(Entities<Orientation>& instance);
         ~Manifest(){};
 
-        void createInstance(glm::vec3 position, glm::vec3 direction)
+        void createInstance(glm::vec3 position, glm::vec3 direction);
 
     private:
         unsigned int entities = 0;
@@ -15,4 +17,4 @@ class Manifest {
         Entities<Orientation>& instance;
 
         unsigned int createIdentity();
-}
+};

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "./modules/choreographer.h"
-#include "./componenets/manifest.h"
+#include "./components/manifest.h"
 
 int main() {
     // Main OpenGL Context

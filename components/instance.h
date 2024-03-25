@@ -7,4 +7,4 @@ struct Orientation {
     glm::vec3 right;
     glm::vec3 up;
     glm::vec3 forward;
-}
+};

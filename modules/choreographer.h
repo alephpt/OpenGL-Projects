@@ -1,12 +1,13 @@
 #pragma once
-#include "../components/instance.h"
-#include "../components/receiver.h"
-#include "../components/trasmission.h"
-#include "../componenets/reflection.h"
-#include "../utilities/shader.h"
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
+#include "../components/instance.h"
+#include "../components/receiver.h"
+#include "../components/transmission.h"
+#include "../components/reflection.h"
+#include "../utilities/shader.h"
+
 
 // The Choreographer is the main application State
 
@@ -21,12 +22,13 @@ class World {
     public:
         World();
         ~World();
+
         void persist();
         void initGL();
         void createChannel();
         void logWorkGroupInfo();
 
-        Orientation instance;
+        Entities<Orientation> instance;
     
     private:
         void initGLFW();
@@ -39,10 +41,10 @@ class World {
         std::vector<unsigned int> shader_modules;
         unsigned int apparition;
 
-        Receiver voyager;
-        Transmission manifestation;
+        Receiver* voyager;
+        Transmission* manifestation;
 
         double prev_T, curr_T;
         int n_frames;
         float frame_T;
-}
+};
