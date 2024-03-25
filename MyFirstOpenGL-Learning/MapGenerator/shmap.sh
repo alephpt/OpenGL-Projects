@@ -1,1 +1,1 @@
-g++ mapgen.cpp glad.c resources/object.cpp -lglfw3 -ldl -pthread -fsanitize=address
+g++ mapgen.cpp glad.c resources/object.cpp -lglfw -ldl -pthread -fsanitize=address

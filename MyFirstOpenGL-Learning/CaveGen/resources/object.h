@@ -25,7 +25,7 @@ class Chunk{
 public: 
  	Chunk();
 	void CleanUp(MapData*);
-	int mapChunkSize = 480;
+	int mapChunkSize = 10;
 	int howSmooth, scalar;
 	float noiseThreshold, fillCutOff;
     MapData MapGeneration(MapData*, std::vector<int>&);

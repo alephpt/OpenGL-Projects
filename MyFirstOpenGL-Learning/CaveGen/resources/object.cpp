@@ -291,7 +291,30 @@ void Chunk::CalculateNormals(std::vector<std::vector<float>> &vertexData, MapDat
 World::World(){ 
   chunkSize = MapGen.mapChunkSize;
   visibleChunks = maxFOV / chunkSize;
-  return ; }
+  return ; 
+}
+
+/* TODO: Need to Implement something like this:
+cp
+    // Initialize GPU compute buffers
+    CreateComputeBuffer(inputData, sizeof(InputData));
+    CreateComputeBuffer(outputData, sizeof(OutputData));
+
+    // Set up kernel function
+    KernelFunction.SetComputeBuffer("inputBuffer", inputData);
+    KernelFunction.SetComputeBuffer("outputBuffer", outputData);
+
+    // Dispatch kernel function
+    int numThreads = CalculateNumThreads();
+    KernelFunction.Dispatch(numThreads);
+
+    // Retrieve generated map data from GPU
+    ReadComputeBuffer(outputData, sizeof(OutputData), mapData);
+
+    // Cleanup GPU resources
+    ReleaseComputeBuffer(inputData);
+    ReleaseComputeBuffer(outputData);
+*/
 
 
 void World::UpdateChunks(glm::vec3 &playerLoc){
@@ -310,11 +333,8 @@ void World::UpdateChunks(glm::vec3 &playerLoc){
           chunkRegion.push_back(currentChunk[2] - xCount);
           chunkRegion.push_back(currentChunk[1] - yCount);
           chunkRegion.push_back(currentChunk[0] + zCount);
-          if(MapTable.count(chunkRegion)){
-            // MapData *currentChunk = new MapData;
-            // *currentChunk = MapTable.at(chunkRegion);
-            // delete currentChunk;
-          } else {
+          
+          if(!MapTable.count(chunkRegion)){
             MapData *newChunk = new MapData;
             *newChunk = MapGen.MapGeneration(newChunk, chunkRegion);
             newChunk->MapChunkCoord = chunkRegion;
