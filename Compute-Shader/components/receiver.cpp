@@ -5,6 +5,12 @@ Receiver::Receiver(GLFWwindow *window, Entities<Orientation> &instance, unsigned
     instances(instance)
 {
     this->window = window;
+    unsigned int shader = shader_program;
+    glUseProgram(shader);
+    anterior = glGetUniformLocation(shader, "forwards");            // Front
+    dextral = glGetUniformLocation(shader, "right");                // Right
+    zenith = glGetUniformLocation(shader, "up");                    // Up
+    alignment = glGetUniformLocation(shader, "cameraPos");          // Position
 }
 
 bool Receiver::update(float dt) {
@@ -45,13 +51,13 @@ bool Receiver::update(float dt) {
         position += 1.0f * dt * d_pos.y * right;
     }
 
-
     // Mouse Events
     glm::vec3 d_dir = { 0.0f, 0.0f, 0.0f };
     double mouse_x, mouse_y;
     
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
     glfwSetCursorPos(window, 320.0, 240.0);
+    glfwPollEvents();
 
     d_dir.z = -0.1f * static_cast<float>(mouse_x - 320.0);
     d_dir.y = -0.1f * static_cast<float>(mouse_y - 240.0);
@@ -61,6 +67,16 @@ bool Receiver::update(float dt) {
     direction.z += d_dir.z;
     if (direction.z > 360) { direction.z -= 360; }
     else if (direction.z < 0) { direction.z += 360; }
+
+    // Update Camera
+    glUseProgram(shader_program);
+    glUniform3fv(anterior, 1, glm::value_ptr(forward));
+    glUniform3fv(dextral, 1, glm::value_ptr(right));
+    glUniform3fv(zenith, 1, glm::value_ptr(up));
+    glUniform3fv(alignment, 1, glm::value_ptr(position));
+
+    system("clear");
+    std::cout << instance << std::endl;
 
     return false;
 }

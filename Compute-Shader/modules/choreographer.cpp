@@ -16,9 +16,7 @@ World::~World() {
 void World::initGL() {
     glClearColor(0.1f, 0.3f, 0.23f, 1.0f);
 
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, WIDTH, HEIGHT);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -49,6 +47,7 @@ void World::initGLFW() {
 
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);
+    
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (glewInit() != GLEW_OK) {
@@ -97,7 +96,6 @@ void World::sync() {
 
     ++n_frames;
     glClear(GL_COLOR_BUFFER_BIT);
-    glfwPollEvents();
 }
 
 void World::persist() {
