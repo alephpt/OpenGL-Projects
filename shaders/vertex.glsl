@@ -1,11 +1,20 @@
 #version 330 core
 
-layout (location=0) in vec3 vertexPos;
-layout (location=1) in vec4 vertexColor;
+out vec2 fragmentTexCoord;
 
-out vec4 fragmentColor;
+const vec2[6] positions = vec2[](
+    vec2( 1.0,  1.0),
+    vec2(-1.0,  1.0),
+    vec2(-1.0, -1.0),
 
-void main() {
-    gl_Position = vec4(vertexPos, 1.0);
-    fragmentColor = vertexColor;
+    vec2(-1.0, -1.0),
+    vec2( 1.0, -1.0),
+    vec2( 1.0,  1.0)
+);
+
+void main()
+{
+    vec2 vertexPos = positions[gl_VertexID];
+    gl_Position = vec4(vertexPos, 0.0, 1.0);
+    fragmentTexCoord = 0.5 * (vertexPos + vec2(1.0, 1.0));
 }

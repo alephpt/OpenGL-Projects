@@ -3,38 +3,17 @@
 
 World::World() { initGLFW(); }
 World::~World() { 
-    for (unsigned int& shader : shader_modules) {
-        glDeleteProgram(shader);
-    }
-
+    glDeleteProgram(shader_program);
     glDeleteTextures(1, &apparition);
 
     delete manifestation;
-    delete voyager;
+    delete witness;
 
     glfwTerminate();
 }
 
-void World::persist() {
-    prev_T = glfwGetTime();
-    n_frames = 0;
-    frame_T = 16.0f;
-
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-    do {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    } while (
-        glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-        glfwWindowShouldClose(window) == 0
-    );
-}
 
 void World::initGL() {
-    initShaders();
-
     glClearColor(0.1f, 0.3f, 0.23f, 1.0f);
 
     int width, height;
@@ -42,6 +21,8 @@ void World::initGL() {
     glViewport(0, 0, width, height);
 
     glDisable(GL_DEPTH_TEST);
+
+    shader_program = initShaders();
 
     Reflection reflection;  // This is essentially creating a Texture/Surface
     apparition = reflection.coalesce(window);
@@ -53,13 +34,12 @@ void World::initGLFW() {
         return;
     }
 
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Back At the OpenGL", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Compute Shaders - Running at 0 fps", NULL, NULL);
 
     if (window == NULL) {
         fprintf(stderr, "Failed to open GLFW Window. Why isn't this working?!\n");
@@ -68,6 +48,8 @@ void World::initGLFW() {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     if (glewInit() != GLEW_OK) {
         fprintf(stderr, "Failed to Initialize GLEW. Fuck!\n");
@@ -76,8 +58,8 @@ void World::initGLFW() {
 }
 
 void World::createChannel() {
-    voyager = new Receiver(window, instance, shader_modules);
-    manifestation = new Transmission(apparition, shader_modules);
+    witness = new Receiver(window, instance, shader_program);
+    manifestation = new Transmission(apparition, shader_program);
 }
 
 void World::logWorkGroupInfo(){
@@ -97,6 +79,44 @@ void World::logWorkGroupInfo(){
     }
 }
 
-void World::sync()
-{
+void World::sync() {
+    curr_T = glfwGetTime();
+    double dt = curr_T - prev_T;
+
+    if (dt > 1) {
+        int framerate{ std::max(1, int(n_frames / dt)) };
+        std::stringstream title;
+
+        title << "Compute Shaders - Running at " << framerate << " fps";
+        glfwSetWindowTitle(window, title.str().c_str());
+
+        prev_T = curr_T;
+        n_frames = -1;
+        frame_T = float(1000.0 / framerate);
+    }
+
+    ++n_frames;
+    glClear(GL_COLOR_BUFFER_BIT);
+    glfwPollEvents();
+}
+
+void World::persist() {
+    prev_T = glfwGetTime();
+    n_frames = 0;
+    frame_T = 16.0f;
+
+    //glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+
+    do {
+        bool close = witness->update(frame_T/1000.0f);
+        if (close) { break; }
+
+        manifestation->update();
+        glfwSwapBuffers(window);
+        sync();
+        glFinish();
+    } while (
+        glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
+        glfwWindowShouldClose(window) == 0
+    );
 }

@@ -2,8 +2,8 @@
 
 #include <GL/glew.h>
 
-Transmission::Transmission(unsigned int apparition, std::vector<unsigned int> &shader_modules):
-    shader_modules(shader_modules),
+Transmission::Transmission(unsigned int apparition, unsigned int& shader_program):
+    shader_program(shader_program),
     apparition(apparition)
 {
     glGenVertexArrays(1, &VAO);
@@ -13,7 +13,7 @@ Transmission::Transmission(unsigned int apparition, std::vector<unsigned int> &s
 Transmission::~Transmission() { glDeleteVertexArrays(1, &VAO); }
 
 void Transmission::update() {
-    glUseProgram(shader_modules[0]);
+    glUseProgram(shader_program);
     glBindTexture(GL_TEXTURE_2D, apparition);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }

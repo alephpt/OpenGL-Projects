@@ -18,32 +18,6 @@ unsigned int createShader(unsigned int mod_type, const char* shader) {
     return shader_mod;
 }
 
-// Create Shader Program
-unsigned int createShaderProgram(const std::vector<unsigned int>& shader_modules) {
-    unsigned int shader_program = glCreateProgram();
-
-    for (unsigned int mod : shader_modules) {
-        glAttachShader(shader_program, mod);
-    }
-
-    glLinkProgram(shader_program);
-
-    int program_created;
-    glGetProgramiv(shader_program, GL_COMPILE_STATUS, &program_created);
-
-    if (!program_created) {
-        char err_log[1024];
-        glGetProgramInfoLog(shader_program, 1024, NULL, err_log);
-        std::cout << "HEY!! - Your Shader Program Failed to Build:\n" << err_log << std::endl;
-    }
-
-    for (unsigned int mod : shader_modules) {
-        glDeleteShader(mod);
-    }
-
-    return shader_program;
-}
-
 unsigned int makeShader( const std::string& filepath, unsigned int mod_type) {
     std::ifstream file;
     std::stringstream buffered_lines;
@@ -62,11 +36,37 @@ unsigned int makeShader( const std::string& filepath, unsigned int mod_type) {
     return createShader(mod_type, shader_source);
 }
 
+// Create Shader Program
+unsigned int createShaderProgram(const std::vector<unsigned int>& shader_modules) {
+    unsigned int shader_program = glCreateProgram();
+
+    for (unsigned int mod : shader_modules) {
+        glAttachShader(shader_program, mod);
+    }
+
+    glLinkProgram(shader_program);
+
+    int program_created;
+    glGetProgramiv(shader_program, GL_LINK_STATUS, &program_created);
+
+    if (!program_created) {
+        char err_log[1024];
+        glGetProgramInfoLog(shader_program, 1024, NULL, err_log);
+        std::cout << "HEY!! - Your Shader Program Failed to Build, Creating Program:\n" << err_log << std::endl;
+    }
+
+    for (unsigned int mod : shader_modules) {
+        glDeleteShader(mod);
+    }
+
+    return shader_program;
+}
+
 unsigned int initShaders() {
     std::vector<unsigned int> shader_modules;
 
-    //shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/vertex.glsl", GL_VERTEX_SHADER));
-    //shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shader/fragment.glsl", GL_FRAGMENT_SHADER));
+    shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shaders/vertex.glsl", GL_VERTEX_SHADER));
+    shader_modules.push_back(makeShader("/home/persist/z/Documents/repos/learning/C/OpenGL/shaders/fragment.glsl", GL_FRAGMENT_SHADER));
 
     return createShaderProgram(shader_modules);
 }

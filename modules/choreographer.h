@@ -5,8 +5,8 @@
 #include "../components/instance.h"
 #include "../components/receiver.h"
 #include "../components/transmission.h"
-#include "../components/reflection.h"
 #include "../utilities/shader.h"
+#include "./reflection.h"
 
 
 // The Choreographer is the main application State
@@ -38,10 +38,10 @@ class World {
         const int WIDTH = 1800;
         const int HEIGHT = 1200;
 
-        std::vector<unsigned int> shader_modules;
+        unsigned int shader_program;
         unsigned int apparition;
 
-        Receiver* voyager;
+        Receiver* witness;
         Transmission* manifestation;
 
         double prev_T, curr_T;

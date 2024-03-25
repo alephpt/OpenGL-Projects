@@ -1,13 +1,15 @@
 #include "receiver.h"
 
-Receiver::Receiver(GLFWwindow *window, Entities<Orientation> &instance, std::vector<unsigned int> &shader_modules):
-    shader_modules(shader_modules),
+Receiver::Receiver(GLFWwindow *window, Entities<Orientation> &instance, unsigned int &shader_program):
+    shader_program(shader_program),
     instances(instance)
 {
     this->window = window;
 }
 
 bool Receiver::update(float dt) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { return true; }
+
     Orientation& instance = instances.instantiations[0];
 
     glm::vec3& position = instance.position;
@@ -43,7 +45,6 @@ bool Receiver::update(float dt) {
         position += 1.0f * dt * d_pos.y * right;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { return true; }
 
     // Mouse Events
     glm::vec3 d_dir = { 0.0f, 0.0f, 0.0f };
@@ -51,7 +52,6 @@ bool Receiver::update(float dt) {
     
     glfwGetCursorPos(window, &mouse_x, &mouse_y);
     glfwSetCursorPos(window, 320.0, 240.0);
-    glfwPollEvents();
 
     d_dir.z = -0.1f * static_cast<float>(mouse_x - 320.0);
     d_dir.y = -0.1f * static_cast<float>(mouse_y - 240.0);
