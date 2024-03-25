@@ -1,32 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "./utilities/shader.h"
+#include "./modules/choreographer.h"
+#include "./componenets/manifest.h"
 
 int main() {
-    GLFWwindow* window;
-    const int WIDTH = 1800;
-    const int HEIGHT = 1200;
-
-    if(init(window, WIDTH, HEIGHT) == -1) { return -1; }
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Back At the OpenGL", NULL, NULL);
-    if (checkWindow(window) == -1) { return -1; }
-    glfwMakeContextCurrent(window);
-    if (initGlew() == -1) { return -1; }
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-
-    initShaders();
-
-    // Main OpenGL Render Loop
-    do {
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    } while (
-        glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-        glfwWindowShouldClose(window) == 0
+    // Main OpenGL Context
+    World* world = new World();
+    Manifest* manifestation = new Manifest(world->instance);
+    
+    // This is essentially our camera
+    manifestation->createInstance(
+        {0.0f, 0.0f, 1.0f}, // Position
+        {0.0f, 0.0f, 0.0f} // Direction
     );
 
-    glfwTerminate();
+    // Create Graphics Pipeline and Run
+    world->initGL();
+    world->createChannel();
+    world->persist();
+
+    // Clean Up
+    delete world;
+    delete manifestation;
     return 0;
 }
