@@ -68,23 +68,16 @@ int main (){
   // glEnable(GL_CULL_FACE);
 
   // creates and binds vertex, array and element buffers
-  unsigned int VBO, VAO /*,EBO*/;
+  unsigned int VBO, VAO ;
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1,&VBO);
-  // glGenBuffers(1,&EBO);
-  void* vecPtr = &mapgen.mapVectors; 
-
 
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, mapgen.vecCount, vecPtr, GL_STATIC_DRAW);
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube.indices), cube.indices, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, mapgen.vecCount / 6, &mapgen.mapVectors, GL_STATIC_DRAW);
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 6, (void*)0);
   glEnableVertexAttribArray(0);
-  // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 6, (void*)(3* sizeof(float)));
-  // glEnableVertexAttribArray(1);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
