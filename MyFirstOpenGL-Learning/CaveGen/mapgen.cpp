@@ -20,10 +20,10 @@
 #include <GLFW/glfw3.h>
 
 
-void cleanUp(unsigned int bufferObject, unsigned int program);
+void cleanUp(std::vector<unsigned int> arrayObjects, unsigned int program);
 unsigned int ShaderData();
 void ObjectBuffer(unsigned int &arrayObject, MapData &MapChunkData);
-void imgui(bool show_window, World &Map, MapData &MapChunkData);
+void imgui(bool show_window, World &Map);
 void MVP(unsigned int shader);
 
 static void glfw_error_callback(int error, const char* description){
@@ -37,14 +37,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 
 // MAIN FUNCTION //
 int main (){
+  printf("Starting Application\n");
   World Map;
-  // MapData *Test = new MapData;
-  // MapData MapChunkData = Map.MapGen.MapGeneration(Test);
-  // delete Test;
+  //MapData *Test = new MapData;
+  //std::vector<int> offset = {0, 0, 0};
+  //MapData MapChunkData = Map.MapGen.MapGeneration(Test, offset);
+  //delete Test;
 
   const int screenHeight = 720;
   const int screenWidth = 1260;
 
+  printf("Creating Window\n");
   // window initialization and resizing
   glfwSetErrorCallback(glfw_error_callback);
   glfwInit();
@@ -63,6 +66,7 @@ int main (){
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   
+  printf("Creating Buffers\n");
   // imGUI initialization
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -73,19 +77,23 @@ int main (){
   bool show_window = true;
 
   // buffer data
-  unsigned int VAO;
+  std::vector<unsigned int> VAOs;
   unsigned int shader = ShaderData();
-  ObjectBuffer(VAO, Map.ChunkData);
+  unsigned int map_table_size = Map.MapTable.size();
+  VAOs.resize(map_table_size);
+  int VAO_index = 0;
+  for (auto& chunk : Map.MapTable){
+    ObjectBuffer(VAOs[VAO_index++], chunk.second);
+  }
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_DITHER);
   glDisable(GL_CULL_FACE);
   
-  //
-  // Main Render Loop
-  //
+  int prev_map_table_size = map_table_size;
+  printf("Starting Render Loop\n");
   while(!glfwWindowShouldClose(window) && !camera.killapp){
-    
+   
     // clear screen data
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -110,13 +118,23 @@ int main (){
     ImGui::NewFrame();
 
     // imgui instance and object buffer
-    
+    imgui(show_window, Map);
 
-    glBindVertexArray(VAO);
-    // for(auto &fuck : Map.ChunkData){
-      glDrawElements(GL_TRIANGLES, Map.ChunkData.indices.size(), GL_UNSIGNED_INT, 0);
-      imgui(show_window, Map, Map.ChunkData);
-    //}
+    // If the map table size changes, reinitialize the object buffer
+    if (prev_map_table_size != Map.MapTable.size()){
+      printf("Map Table Size Changed\n");
+      VAOs.clear();
+      VAOs.resize(Map.MapTable.size());
+      VAO_index = 0;
+      for (auto& chunk : Map.MapTable){ ObjectBuffer(VAOs[VAO_index++], chunk.second); }
+      prev_map_table_size = Map.MapTable.size();
+    }
+
+    VAO_index = 0;
+    for (auto& chunk : Map.MapTable){
+      glBindVertexArray(VAOs[VAO_index++]);
+      glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
+    }
     
 
    // render objects
@@ -129,24 +147,22 @@ int main (){
     // Map.MapGeneration();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    
+
     glfwSwapBuffers(window);
   }
 
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
-  cleanUp(VAO, shader);
+  cleanUp(VAOs, shader);
   return 0;
 }
 
 // generates and binds Object and Vertex Array buffers, and populates buffer data with Object Vertices
 void ObjectBuffer(unsigned int &arrayObject, MapData &MapChunkData){
+  printf("Creating Object Buffer for Chunk: %d, %d, %d\n", MapChunkData.offset.x, MapChunkData.offset.y, MapChunkData.offset.z);
   unsigned int EBO, VBO[3];
-
-  // std::vector<int> indices;
-  // std::vector<float> vertices;
-  // std::vector<float> normals = Map.CalculateNormals();
-  // std::vector<float> colors;
 
   glGenVertexArrays(1, &arrayObject);
   glGenBuffers(3, VBO);
@@ -171,18 +187,17 @@ void ObjectBuffer(unsigned int &arrayObject, MapData &MapChunkData){
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-   // Map.MapGeneration();  // << -- this tests my algorythm by generating in real time and crashing my computer <3
 }
 
 // calls the shader source code, parsing and creating shader program
 unsigned int ShaderData(){
   unsigned int program = glCreateProgram();
-  ShaderSource source = parseShader("resources/base.shader");
+  ShaderSource source = parseShader("/home/persist/z/Ancillary/Big Stick Studios/repos/learning/Cpp/OpenGl/MyFirstOpenGL-Learning/CaveGen/resources/base.shader");
   unsigned int shader = createShader(source.VertexSource, source.FragmentSource, program);
   return shader;
 }
 
-void imgui(bool show_window, World &Map, MapData &MapChunkData){
+void imgui(bool show_window, World &Map){
       // imGui context
     if (show_window){
       ImGui::Begin("Controls", &show_window);
@@ -205,48 +220,55 @@ void imgui(bool show_window, World &Map, MapData &MapChunkData){
         camera.killapp = true;
       }
       
-      
       ImGui::SliderInt(" - Scale", &Map.MapGen.scalar, 0, 25);
       ImGui::SliderInt(" - Smoothing Level ", &Map.MapGen.howSmooth, 0, 10);
       ImGui::SliderFloat(" - Noise Thresh ", &Map.MapGen.noiseThreshold, 0.0f, 100.0f);
       ImGui::SliderFloat(" - Fill Cutoff", &Map.MapGen.fillCutOff, 0.0f, 100.0f);
 
       if(ImGui::Button("Regen")){
-        // Map.MapGeneration();
+        Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Solid")){
         Map.MapGen.noiseThreshold = 72.44f;
         Map.MapGen.fillCutOff = 27.37f;
-       //  Map.MapGeneration();
+        Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Edges")){
         Map.MapGen.noiseThreshold = 21.29f;
         Map.MapGen.fillCutOff = 85.05f;
-        // Map.MapGeneration();
+        Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Tunnels")){
         Map.MapGen.noiseThreshold = 77.18f;
         Map.MapGen.fillCutOff = 17.69f;
-        // Map.MapGeneration();
+        Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Cells")){
         Map.MapGen.noiseThreshold = 81.36f;
         Map.MapGen.fillCutOff = 13.31f;
-        // Map.MapGeneration();
+        Map.MapTable.clear();
       }
+
+      Map.UpdateChunks(camera.location);
+
 
       ImGui::End();
     }
 
-    Map.UpdateChunks(camera.location);
     if (show_window){
       ImGui::Begin("Data", &show_window);
       ImGui::Text("Application average %.2f ms/frame (%.1f FPS)\n", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      ImGui::Text("Vertex Count : %i - Triangles : %i \n" , MapChunkData.vertices.size() / 3, MapChunkData.indices.size() / 3);
+      int vertexCount = 0;
+      int triangleCount = 0;
+      for (auto& chunk : Map.MapTable){
+        vertexCount += chunk.second.vertices.size();
+        triangleCount += chunk.second.indices.size();
+      }
+      ImGui::Text("Vertex Count : %i - Triangles : %i \n" , vertexCount, triangleCount);
       ImGui::Text(" Camera Coords     X       Y       Z");
       ImGui::Text(" - Grid Pos  -    %i    %i    %i", Map.currentChunk[0], Map.currentChunk[1], Map.currentChunk[2]);
       ImGui::Text(" - Location  -    %.2f    %.2f    %.2f", camera.location.x, camera.location.y, camera.location.z);
@@ -274,8 +296,10 @@ void MVP(unsigned int shader){
 }
 
 // deletes shader program and buffers
-void cleanUp(unsigned int arrayObject, unsigned int program){
-  glDeleteVertexArrays(1, &arrayObject);
+void cleanUp(std::vector<unsigned int> arrayObjects, unsigned int program){
+  for (auto& arrayObject : arrayObjects){
+    glDeleteVertexArrays(1, &arrayObject);
+  }
   glDeleteProgram(program);
   glfwTerminate();
 }
