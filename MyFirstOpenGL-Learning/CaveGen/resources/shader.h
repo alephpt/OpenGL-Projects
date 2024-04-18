@@ -14,6 +14,7 @@
   struct ShaderSource{
     std::string VertexSource;
     std::string FragmentSource;
+//    std::string ComputeSource;
   }; 
 
   // function  definitions
@@ -21,6 +22,7 @@
     int result;
     unsigned int id = glCreateShader(type);
     const char* src = sourcecode.c_str();
+    //printf("Compiling Shader:\n%s\n", src);
     glShaderSource(id, 1, &src, nullptr);
     glCompileShader(id);
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
@@ -39,13 +41,19 @@
     }
     return id;
   }
+
   static unsigned int createShader(const std::string& vertexShader, const std::string& fragmentShader, unsigned int& program){
+      //printf("Creating Vertex Shader:\n%s\n", vertexShader.c_str());
+      //printf("Creating Fragment Shader:\n%s\n", fragmentShader.c_str());
+
       int success;
       unsigned int vert = compileShader(GL_VERTEX_SHADER, vertexShader);
       unsigned int frag = compileShader(GL_FRAGMENT_SHADER, fragmentShader);
+ //     unsigned int comp = compileShader(GL_COMPUTE_SHADER, fragmentShader);
 
       glAttachShader(program, vert);
       glAttachShader(program, frag);
+//      glAttachShader(program, comp);
       glLinkProgram(program);
       glValidateProgram(program);
       glGetProgramiv(program, GL_LINK_STATUS, &success);
@@ -61,11 +69,13 @@
   }
   static ShaderSource parseShader(const std::string& filepath){
     std::ifstream stream(filepath);
+    if(!stream){ std::cout << "Failed to open file: " << filepath << std::endl; }
 
     enum class ShaderType{
       NONE = -1,
       VERTEX = 0,
-      FRAGMENT = 1
+      FRAGMENT = 1,
+      COMPUTE = 2
     };
 
     std::string line;
@@ -78,6 +88,9 @@
         }
         else if (line.find("Fragment") != std::string::npos){
           type = ShaderType::FRAGMENT;
+        }
+        else if (line.find("Compute") != std::string::npos){
+          type = ShaderType::COMPUTE;
         }
       }
       else{
