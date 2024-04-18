@@ -17,6 +17,8 @@
 #include <cmath>
 #include <map>
 #include <memory.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 // Creates Map Segments
 Chunk::Chunk(){
@@ -265,13 +267,16 @@ void Chunk::PopulateVertices(std::vector<std::vector<float>> &vertexData, glm::i
     if( colorvar < 16.5 ){ colorvar = colorvar / 100.0f; } 
     else { colorvar = (colorvar / 100.0f) * 2.0f; }
 
-    MapChunk->vertices.push_back((vertexData[i][0] * scalar) + (float)(offset[0]));
-    MapChunk->vertices.push_back((vertexData[i][1] * scalar) + (float)(offset[1]));
-    MapChunk->vertices.push_back((vertexData[i][2] * scalar) + (float)(offset[2]));
+    MapChunk->vertices.push_back(vertexData[i][0] - offset.x);
+    MapChunk->vertices.push_back(vertexData[i][1] - offset.y);
+    MapChunk->vertices.push_back(vertexData[i][2] - offset.z);
+
     MapChunk->colors.push_back(vertexData[i][1] / height);
     MapChunk->colors.push_back(vertexData[i][1] / (height + 10) * colorvar);
     MapChunk->colors.push_back(colorvar / (vertexData[i][1] + 0.2f));
   }
+
+  deduplicateVertices(MapChunk);
 }
 
  // Finds the coordinates of vertices based on index, and calculates normal directions.
@@ -279,37 +284,67 @@ void Chunk::CalculateNormals(std::vector<std::vector<float>> &vertexData, MapDat
   printf("Calculating Normals\n");
    MapChunk->normals.clear();
 
-   for (int i = 0; i < MapChunk->indices.size() / 3; i++){
-    i = i * 3;
-    std::vector<float> p1 = vertexData[MapChunk->indices[i]];
-    std::vector<float> p2 = vertexData[MapChunk->indices[i + 1]];
-    std::vector<float> p3 = vertexData[MapChunk->indices[i + 2]];
+    // Initialize normals for each vertex to zero
+    std::vector<glm::vec3> normals(vertexData.size(), glm::vec3(0.0f));
 
-    std::vector<float> U = {p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]};
-    std::vector<float> V = {p3[0] - p1[0], p3[1] - p1[1], p3[2] - p1[2]};
+    // Calculate normals for each triangle and add them to corresponding vertices
+    for (int i = 0; i < MapChunk->indices.size(); i += 3) {
+        std::vector<float> p1 = vertexData[MapChunk->indices[i]];
+        std::vector<float> p2 = vertexData[MapChunk->indices[i + 1]];
+        std::vector<float> p3 = vertexData[MapChunk->indices[i + 2]];
 
-    MapChunk->normals.push_back((U[1] * V[2]) - (U[2] * V[1]));
-    MapChunk->normals.push_back((U[2] * V[0]) - (U[0] * V[2]));
-    MapChunk->normals.push_back((U[0] * V[1]) - (U[1] * V[0]));
-  }
-  // return normals;
+        glm::vec3 v1 = glm::vec3(p1[0], p1[1], p1[2]);
+        glm::vec3 v2 = glm::vec3(p2[0], p2[1], p2[2]);
+        glm::vec3 v3 = glm::vec3(p3[0], p3[1], p3[2]);
+
+        glm::vec3 edge1 = v2 - v1;
+        glm::vec3 edge2 = v3 - v1;
+
+        // Calculate the face normal
+        glm::vec3 faceNormal = glm::cross(edge1, edge2);
+
+        // Add the face normal to each vertex of the triangle
+        normals[MapChunk->indices[i]] += faceNormal;
+        normals[MapChunk->indices[i + 1]] += faceNormal;
+        normals[MapChunk->indices[i + 2]] += faceNormal;
+    }
+
+    // Normalize the normals
+    for (int i = 0; i < normals.size(); ++i) {
+        glm::vec3 normal = glm::normalize(normals[i]);
+        MapChunk->normals.push_back(normal.x);
+        MapChunk->normals.push_back(normal.y);
+        MapChunk->normals.push_back(normal.z);
+    }
 }
 
+void Chunk::deduplicateVertices(MapData *MapChunk){
+  std::vector<float> newVertices;
+  std::vector<float> newColors;
 
+  std::map<std::vector<float>, unsigned int> vertexMap;
+  std::map<std::vector<float>, unsigned int> colorMap;
 
-// World::TerrainChunk::TerrainChunk(glm::vec3 coordinates, int size){ 
-//   chunkPosition = glm::vec3(coordinates.x * size, coordinates.y * size, coordinates.z * size);
-//   MapData *MapChunk = new MapData;
-//   *MapChunk = MapGen.MapGeneration();
-//   MapGen.CleanUp();
-//   return;  }
+  for (int i = 0; i < MapChunk->vertices.size(); i += 3) {
+    std::vector<float> vertex = {MapChunk->vertices[i], MapChunk->vertices[i + 1], MapChunk->vertices[i + 2]};
+    std::vector<float> color = {MapChunk->colors[i], MapChunk->colors[i + 1], MapChunk->colors[i + 2]};
+    if (vertexMap.find(vertex) == vertexMap.end()) {
+      vertexMap[vertex] = newVertices.size() / 3;
+      colorMap[vertex] = newColors.size() / 3;
+      newVertices.insert(newVertices.end(), vertex.begin(), vertex.end());
+      newColors.insert(newColors.end(), color.begin(), color.end());
+    }
+  }
 
+  MapChunk->vertices = newVertices;
+  MapChunk->colors = newColors;
+}
 
+// Need to seperate World and Chunk classes
 World::World(){ 
   chunkSize = MapGen.mapChunkSize;
   visibleChunks = maxFOV / chunkSize;
   lastChunk = glm::ivec3(0, 0, 0);
-  TotalMap.clear();
   MapTable.clear();
   created_chunks.clear();
   visible_chunks.clear();
@@ -320,27 +355,49 @@ World::World(){
   return ; 
 }
 
-/* TODO: Need to Implement something like this:
-cp
-    // Initialize GPU compute buffers
-    CreateComputeBuffer(inputData, sizeof(InputData));
-    CreateComputeBuffer(outputData, sizeof(OutputData));
+void OffloadChunkData(glm::ivec3 chunk, MapData *MapChunk) {
+    // Offload chunk data to disk
+    std::string filename = "/home/persist/mine/repos/map_chunks/" + std::to_string(chunk.x) + std::to_string(chunk.y) + std::to_string(chunk.z) + ".chunk";
+    std::ofstream ofs(filename, std::ios::binary);
 
-    // Set up kernel function
-    KernelFunction.SetComputeBuffer("inputBuffer", inputData);
-    KernelFunction.SetComputeBuffer("outputBuffer", outputData);
+    if (!ofs) {
+        std::cerr << " [OffloadChunkData]: Failed to Offload Chunk to File: " << filename << std::endl;
 
-    // Dispatch kernel function
-    int numThreads = CalculateNumThreads();
-    KernelFunction.Dispatch(numThreads);
+        return;
+    }
 
-    // Retrieve generated map data from GPU
-    ReadComputeBuffer(outputData, sizeof(OutputData), mapData);
+    ofs << MapChunk->Serialize().c_str();
+    ofs.close();
+}
 
-    // Cleanup GPU resources
-    ReleaseComputeBuffer(inputData);
-    ReleaseComputeBuffer(outputData);
-*/
+MapData LoadChunkData(glm::ivec3 chunk) {
+    // Check if file exists
+    std::string filename = "/home/persist/mine/repos/map_chunks/" + std::to_string(chunk.x) + std::to_string(chunk.y) + std::to_string(chunk.z) + ".chunk";
+    if (access(filename.c_str(), F_OK) == -1) {
+        std::cerr << " [LoadChunkData]: File does not exist: " << filename << std::endl;
+        return MapData();
+    }
+
+    std::ifstream ifs(filename, std::ios::binary);
+    if (!ifs) {
+        std::cerr << " [LoadChunkData]: Failed to open file: " << filename << std::endl;
+        return MapData();
+    }
+
+    // deserialize data from file
+    std::string serializedData;
+    ifs.seekg(0, std::ios::end);
+    serializedData.reserve(ifs.tellg());
+    ifs.seekg(0, std::ios::beg);
+    serializedData.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
+
+    // Deserialize data to MapData object
+    MapData MapChunk = MapData::Deserialize(serializedData);
+
+
+    ifs.close();
+    return MapChunk;
+}
 
 
 void World::UpdateChunks(glm::vec3 &playerLoc) {
@@ -356,7 +413,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc) {
         // Update visible chunks
         visible_chunks.clear();
 
-        for (int x = -1; x <= 1; x++) {
+        for (int x = 0; x <= 2; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
                     glm::ivec3 chunk = glm::ivec3(
@@ -370,32 +427,37 @@ void World::UpdateChunks(glm::vec3 &playerLoc) {
         }
         printf("Visible Chunks: %d\n", visible_chunks.size());
         
-        // Update created chunks
-        for (auto it = visible_chunks.begin(); it != visible_chunks.end(); it++) {
-            if (created_chunks.find(*it) == created_chunks.end()) {
-                printf("Creating Chunk: %d, %d, %d\n", it->x, it->y, it->z);
-                MapData *MapChunk = new MapData;
-                glm::ivec3 offset = *it * chunkSize;
-                *MapChunk = MapGen.MapGeneration(MapChunk, offset);
-                MapTable[*it] = *MapChunk;
-                TotalMap[*it] = *MapChunk;
-                created_chunks.insert(*it);
-                delete MapChunk;
-            } else {
-                MapTable[*it] = TotalMap[*it];
-            }
-        }
-        printf("Created Chunks: %d\n", created_chunks.size());
-
         // Remove chunks that are no longer visible
-        auto it = created_chunks.begin();
-        while (it != created_chunks.end()) {
-            if (visible_chunks.find(*it) == visible_chunks.end()) {
-                MapTable.erase(*it);
-                it = visible_chunks.erase(it);
+        auto it = MapTable.begin();
+        while (it != MapTable.end()) {
+            if (visible_chunks.find(it->first) == visible_chunks.end()) {
+                glm::ivec3 chunk = it->first;
+                printf("Removing Chunk: %d, %d, %d\n", chunk.x, chunk.y, chunk.z);
+                OffloadChunkData(chunk, &(it->second));
+                MapTable.erase(it);
             } else {
                 ++it;
             }
+        }
+
+        // Update created chunks and load new chunks
+        for (auto it = visible_chunks.begin(); it != visible_chunks.end(); it++) {
+          if (MapTable.find(*it) == MapTable.end()) {
+            printf("Loading or Creating Chunk: %d, %d, %d\n", it->x, it->y, it->z);
+            MapData MapChunk = LoadChunkData(*it);
+
+            if (MapChunk.vertices.empty()) {
+                printf("Creating Chunk: %d, %d, %d\n", it->x, it->y, it->z);
+                MapData *NewMapChunk = new MapData;
+                glm::ivec3 offset = *it * chunkSize;
+                *NewMapChunk = MapGen.MapGeneration(NewMapChunk, offset);
+                MapTable[*it] = *NewMapChunk;
+                created_chunks.insert(*it);
+                delete NewMapChunk;
+            } else {
+                MapTable[*it] = MapChunk;
+            }
+          }
         }
 
         printf("Visible Chunks: %d\n", visible_chunks.size());
@@ -403,15 +465,3 @@ void World::UpdateChunks(glm::vec3 &playerLoc) {
         lastChunk = currentChunk;
     }
 }
-
-
-
-
-  // only use one chunk for now
-  // MapData *MapChunk = new MapData;
-  // std::vector<int> offset {0, 0, 0};
-  // *MapChunk = MapGen.MapGeneration(MapChunk, offset);
-  // MapTable[offset] = *MapChunk;
-  // delete MapChunk;
-  // return;
-
