@@ -19,7 +19,6 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // generates and binds Object and Vertex Array buffers, and populates buffer data with Object Vertices
 static inline void bindObjectBuffer(unsigned int &arrayObject, ChunkData &MapChunkData)
     {
-        printf("Binding Object Buffer for Chunk: %d, %d, %d\n", MapChunkData.offset[0], MapChunkData.offset[1], MapChunkData.offset[2]);
         unsigned int EBO, VBO[3];
 
         glGenVertexArrays(1, &arrayObject);
