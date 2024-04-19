@@ -1,1 +1,1 @@
-g++ mapgen.cpp glad.c resources/object.cpp resources/imgui/imgui.cpp resources/imgui/imgui_draw.cpp resources/imgui/imgui_widgets.cpp resources/imgui/imgui_impl_glfw.cpp resources/imgui/imgui_impl_opengl3.cpp -lglfw -ldl -pthread -fsanitize=address -o ~/mapgen
+g++ mapgen.cpp glad.c resources/*/*.cpp resources/*/*/*.cpp -lglfw -ldl -pthread -fsanitize=address -o ~/a.out 
