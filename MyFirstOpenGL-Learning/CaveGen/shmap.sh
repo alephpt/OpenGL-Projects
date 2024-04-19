@@ -1,1 +1,1 @@
-g++ mapgen.cpp glad.c resources/*/*.cpp resources/*/*/*.cpp -lglfw -ldl -pthread -fsanitize=address -o ~/a.out 
+g++ main.cpp cavegen/components/glad.c cavegen/*.cpp cavegen/*/*.cpp cavegen/*/*/*.cpp -lglfw -ldl -pthread -fsanitize=address -o ~/a.out
