@@ -8,39 +8,51 @@ inline std::string ChunkData::Serialize() const
         std::stringstream ss;
         ss << "{";
         ss << "\"vertices\": [";
-        for (size_t i = 0; i < vertices.size(); i++) {
-            ss << vertices[i];
-            if (i < vertices.size() - 1) {
-                ss << ",";
+        
+        for (size_t i = 0; i < vertices.size(); i++) 
+            {
+                ss << vertices[i];
+                
+                if (i < vertices.size() - 1) 
+                    { ss << ","; }
             }
-        }
+        
         ss << "],";
         ss << "\"colors\": [";
-        for (size_t i = 0; i < colors.size(); i++) {
-            ss << colors[i];
-            if (i < colors.size() - 1) {
-                ss << ",";
+        
+        for (size_t i = 0; i < colors.size(); i++) 
+            {
+                ss << colors[i];
+        
+                if (i < colors.size() - 1) 
+                    { ss << ","; }
             }
-        }
+
         ss << "],";
         ss << "\"normals\": [";
-        for (size_t i = 0; i < normals.size(); i++) {
-            ss << normals[i];
-            if (i < normals.size() - 1) {
-                ss << ",";
+
+        for (size_t i = 0; i < normals.size(); i++) 
+            {
+                ss << normals[i];
+                
+                if (i < normals.size() - 1) 
+                { ss << ","; }
             }
-        }
+
         ss << "],";
         ss << "\"indices\": [";
-        for (size_t i = 0; i < indices.size(); i++) {
-            ss << indices[i];
-            if (i < indices.size() - 1) {
-                ss << ",";
+
+        for (size_t i = 0; i < indices.size(); i++) 
+            {
+                ss << indices[i];
+                if (i < indices.size() - 1) 
+                    { ss << ","; }
             }
-        }
+
         ss << "],";
         ss << "\"offset\": [" << offset.x << "," << offset.y << "," << offset.z << "]";
         ss << "}";
+        
         return ss.str();
     }
 
