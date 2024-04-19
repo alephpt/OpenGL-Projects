@@ -1,28 +1,31 @@
-#include "resources/imgui/imgui.h"
-#include "resources/imgui/imgui_impl_glfw.h"
-#include "resources/imgui/imgui_impl_opengl3.h"
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h>
-#endif
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+
+#include "resources/modules/world.h"
+#include "resources/modules/user-input.h"
+#include "resources/modules/shader.h"
+
+#include "resources/components/imgui/imgui.h"
+#include "resources/components/imgui/imgui_impl_glfw.h"
+#include "resources/components/imgui/imgui_impl_opengl3.h"
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <cmath>
 #include <map>
-#include "resources/object.h"
-#include "resources/character.h"
-#include "resources/shader.h"
 
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+#include <glad/glad.h>
+#endif
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <GLFW/glfw3.h>
 
 
 void cleanUp(std::vector<unsigned int> arrayObjects, unsigned int program);
 unsigned int ShaderData();
-void ObjectBuffer(unsigned int &arrayObject, MapData &MapChunkData);
+void ObjectBuffer(unsigned int &arrayObject, ChunkData &MapChunkData);
 void imgui(bool show_window, World &Map);
 void MVP(unsigned int shader);
 
@@ -39,9 +42,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height){
 int main (){
   printf("Starting Application\n");
   World Map;
-  //MapData *Test = new MapData;
+  //ChunkData *Test = new ChunkData;
   //std::vector<int> offset = {0, 0, 0};
-  //MapData MapChunkData = Map.MapGen.MapGeneration(Test, offset);
+  //ChunkData MapChunkData = Map.MapGen.MapGeneration(Test, offset);
   //delete Test;
 
   const int screenHeight = 720;
@@ -160,7 +163,7 @@ int main (){
 }
 
 // generates and binds Object and Vertex Array buffers, and populates buffer data with Object Vertices
-void ObjectBuffer(unsigned int &arrayObject, MapData &MapChunkData){
+void ObjectBuffer(unsigned int &arrayObject, ChunkData &MapChunkData){
   printf("Creating Object Buffer for Chunk: %d, %d, %d\n", MapChunkData.offset.x, MapChunkData.offset.y, MapChunkData.offset.z);
   unsigned int EBO, VBO[3];
 
@@ -192,7 +195,7 @@ void ObjectBuffer(unsigned int &arrayObject, MapData &MapChunkData){
 // calls the shader source code, parsing and creating shader program
 unsigned int ShaderData(){
   unsigned int program = glCreateProgram();
-  ShaderSource source = parseShader("/home/persist/z/Ancillary/Big Stick Studios/repos/learning/Cpp/OpenGl/MyFirstOpenGL-Learning/CaveGen/resources/base.shader");
+  ShaderSource source = parseShader("/home/persist/z/Ancillary/Big Stick Studios/repos/learning/Cpp/OpenGl/MyFirstOpenGL-Learning/CaveGen/resources/components/base.shader");
   unsigned int shader = createShader(source.VertexSource, source.FragmentSource, program);
   return shader;
 }
@@ -220,36 +223,36 @@ void imgui(bool show_window, World &Map){
         camera.killapp = true;
       }
       
-      ImGui::SliderInt(" - Scale", &Map.MapGen.scalar, 0, 25);
-      ImGui::SliderInt(" - Smoothing Level ", &Map.MapGen.howSmooth, 0, 10);
-      ImGui::SliderFloat(" - Noise Thresh ", &Map.MapGen.noiseThreshold, 0.0f, 100.0f);
-      ImGui::SliderFloat(" - Fill Cutoff", &Map.MapGen.fillCutOff, 0.0f, 100.0f);
+      ImGui::SliderInt(" - Scale", &Map.scalar, 0, 25);
+      ImGui::SliderInt(" - Smoothing Level ", &Map.howSmooth, 0, 10);
+      ImGui::SliderFloat(" - Noise Thresh ", &Map.noiseThreshold, 0.0f, 100.0f);
+      ImGui::SliderFloat(" - Fill Cutoff", &Map.fillCutOff, 0.0f, 100.0f);
 
       if(ImGui::Button("Regen")){
         Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Solid")){
-        Map.MapGen.noiseThreshold = 72.44f;
-        Map.MapGen.fillCutOff = 27.37f;
+        Map.noiseThreshold = 72.44f;
+        Map.fillCutOff = 27.37f;
         Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Edges")){
-        Map.MapGen.noiseThreshold = 21.29f;
-        Map.MapGen.fillCutOff = 85.05f;
+        Map.noiseThreshold = 21.29f;
+        Map.fillCutOff = 85.05f;
         Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Tunnels")){
-        Map.MapGen.noiseThreshold = 77.18f;
-        Map.MapGen.fillCutOff = 17.69f;
+        Map.noiseThreshold = 77.18f;
+        Map.fillCutOff = 17.69f;
         Map.MapTable.clear();
       }
       ImGui::SameLine();
       if(ImGui::Button("Cells")){
-        Map.MapGen.noiseThreshold = 81.36f;
-        Map.MapGen.fillCutOff = 13.31f;
+        Map.noiseThreshold = 81.36f;
+        Map.fillCutOff = 13.31f;
         Map.MapTable.clear();
       }
 
