@@ -62,10 +62,10 @@ int main ()
 
         bool err = gladLoadGL() == 0;
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        {
-            std::cout << "Failed to initialize GLAD" << std::endl;
-            return -1;
-        }
+            {
+                std::cout << "Failed to initialize GLAD" << std::endl;
+                return -1;
+            }
 
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
         
@@ -96,63 +96,64 @@ int main ()
         int prev_map_table_size = map_table_size;
         printf("Starting Render Loop\n");
 
-        while(!glfwWindowShouldClose(window) && !camera.killapp){
-            // clear screen data
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        while(!glfwWindowShouldClose(window) && !camera.killapp)
+            {
+                // clear screen data
+                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // load input data
-            glUseProgram(shader);
+                // load input data
+                glUseProgram(shader);
 
-            // if mouse is free - kill callback - else disable cursor, log mouse and user input
-            if (camera.freeMouse) 
-                {
-                    glfwSetCursorPosCallback(window, NULL);
-                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                } 
-            else if (!camera.freeMouse)
-                {
-                    userInput(window);
-                    glfwSetCursorPosCallback(window, mouselog);
-                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                }
+                // if mouse is free - kill callback - else disable cursor, log mouse and user input
+                if (camera.freeMouse) 
+                    {
+                        glfwSetCursorPosCallback(window, NULL);
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                    } 
+                else if (!camera.freeMouse)
+                    {
+                        userInput(window);
+                        glfwSetCursorPosCallback(window, mouselog);
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                    }
 
-            // initialize screen data handling
-            glfwPollEvents();
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
+                // initialize screen data handling
+                glfwPollEvents();
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
 
-            // imgui instance and object buffer
-            imgui(show_window, Map);
+                // imgui instance and object buffer
+                imgui(show_window, Map);
 
-            // If the map table size changes, reinitialize the object buffer
-            if (prev_map_table_size != Map.MapTable.size())
-                {
-                    printf("Map Table Size Changed\n");
-                    VAOs.clear();
-                    VAOs.resize(Map.MapTable.size());
-                    VAO_index = 0;
-                    for (auto& chunk : Map.MapTable){ ObjectBuffer(VAOs[VAO_index++], chunk.second); }
-                    prev_map_table_size = Map.MapTable.size();
-                }
+                // If the map table size changes, reinitialize the object buffer
+                if (prev_map_table_size != Map.MapTable.size())
+                    {
+                        printf("Map Table Size Changed\n");
+                        VAOs.clear();
+                        VAOs.resize(Map.MapTable.size());
+                        VAO_index = 0;
+                        for (auto& chunk : Map.MapTable){ ObjectBuffer(VAOs[VAO_index++], chunk.second); }
+                        prev_map_table_size = Map.MapTable.size();
+                    }
 
-            VAO_index = 0;
-            for (auto& chunk : Map.MapTable)
-                {
-                    glBindVertexArray(VAOs[VAO_index++]);
-                    glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
-                }
-              
-            // model - view - projection 
-            MVP(shader);
-            
-            // refresh compute data
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+                VAO_index = 0;
+                for (auto& chunk : Map.MapTable)
+                    {
+                        glBindVertexArray(VAOs[VAO_index++]);
+                        glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
+                    }
+                
+                // model - view - projection 
+                MVP(shader);
+                
+                // refresh compute data
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-            glfwSwapBuffers(window);
-        }
+                glfwSwapBuffers(window);
+            }
 
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
