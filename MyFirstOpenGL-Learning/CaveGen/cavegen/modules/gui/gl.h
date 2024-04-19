@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./chunkdata.h"
+#include "../world/chunkdata.h"
 #include "./shader.h"
 
 #include <iostream>

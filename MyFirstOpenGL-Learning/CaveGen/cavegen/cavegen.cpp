@@ -1,6 +1,6 @@
 #include "./cavegen.h"
-#include "./modules/gl.h"
-#include "./modules/shader.h"
+#include "./modules/gui/gl.h"
+#include "./modules/gui/shader.h"
 #include "cavegen.h"
 
 
