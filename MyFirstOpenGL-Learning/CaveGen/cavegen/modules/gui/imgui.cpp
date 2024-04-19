@@ -50,6 +50,7 @@ void CaveGeneration::imgui(bool show_window)
                 ImGui::SliderInt(" - Smoothing Level ", &Map.howSmooth, 0, 10);
                 ImGui::SliderFloat(" - Noise Thresh ", &Map.noiseThreshold, 0.0f, 100.0f);
                 ImGui::SliderFloat(" - Fill Cutoff", &Map.fillCutOff, 0.0f, 100.0f);
+                ImGui::SliderInt(" - Visible Area", &Map.area, 0, 5);
 
                 if(ImGui::Button("Regen"))
                     { Map.MapTable.clear(); }
@@ -105,8 +106,9 @@ void CaveGeneration::imgui(bool show_window)
                     }
                     
                 ImGui::Text("Vertex Count : %i - Triangles : %i \n" , vertexCount, triangleCount);
-                ImGui::Text(" Camera Coords     X       Y       Z");
+                ImGui::Text("   Cordinate     X       Y       Z");
                 ImGui::Text(" - Grid Pos  -    %i    %i    %i", Map.currentChunk[0], Map.currentChunk[1], Map.currentChunk[2]);
+                ImGui::Text(" - Chunk Pos -    %i    %i    %i", Map.lastChunk[0], Map.lastChunk[1], Map.lastChunk[2]);
                 ImGui::Text(" - Location  -    %.2f    %.2f    %.2f", camera.location.x, camera.location.y, camera.location.z);
                 ImGui::Text(" - Direction -    %.2f    %.2f    %.2f\n", camera.direction.x, camera.direction.y, camera.direction.z);
                 
