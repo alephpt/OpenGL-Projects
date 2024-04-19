@@ -1,7 +1,7 @@
-#include "../cavegen.h"
-#include "../components/imgui/imgui.h"
-#include "../components/imgui/imgui_impl_glfw.h"
-#include "../components/imgui/imgui_impl_opengl3.h"
+#include "../../cavegen.h"
+#include "../../components/imgui/imgui.h"
+#include "../../components/imgui/imgui_impl_glfw.h"
+#include "../../components/imgui/imgui_impl_opengl3.h"
 
 void CaveGeneration::imguiInit()
     {

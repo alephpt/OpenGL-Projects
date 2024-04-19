@@ -1,7 +1,7 @@
 #pragma once
 
-#include "./modules/world.h"
-#include "./modules/camera.h"
+#include "./modules/world/world.h"
+#include "./modules/gui/camera.h"
 
 #include <vector>
 #include <set>

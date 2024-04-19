@@ -1,6 +1,6 @@
 #include "chunk.h"
 
-#include "../components/marching.h"
+#include "../../components/marching.h"
 
 #include <algorithm>
 #include <map>
