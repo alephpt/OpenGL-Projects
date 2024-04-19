@@ -52,104 +52,96 @@ inline ChunkData ChunkData::Deserialize(const std::string& json)
 
         // Expecting '{'
         if (!(ss >> token && token == "{")) 
-            { throw std::invalid_argument("Invalid JSON format: missing opening brace '{'."); 
-                printf("Received: %s\n", token.c_str());
-            }
+            { printf("[DESERIALIZE]::ERROR - Expected '{' - Received Token: %s\n", token.c_str()); return data; }
 
         // Parsing "vertices"
         if (!(ss >> token && token == "\"vertices\":")) 
-            { throw std::invalid_argument("Invalid JSON format: missing or incorrect 'vertices' field."); }
+            { printf("[DESERIALIZE]::ERROR - Expected 'vertices' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 
-            { throw std::invalid_argument("Invalid JSON format: missing opening bracket '[' for 'vertices'."); }
+            { printf("[DESERIALIZE]::ERROR - vertices Expected '[' - Received Token: %s\n", token.c_str()); return data; }
         
         while (true) 
             { 
-                ss >> token;
-            
-                if (token == "]") { break; }
+                if (!(ss >> token) && token == "]") { break; }
+                    { printf("[DESERIALIZE]::ERROR - Expected ']' - Received Token: %s\n", token.c_str()); return data;}
 
                 try { data.vertices.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                    { throw std::invalid_argument("Invalid JSON format: invalid floating-point value for 'vertices'."); }
+                    { printf("[DESERIALIZE]::ERROR - vertices - Received Token: %s\n", token.c_str()); return data; }
             }
 
         // Parsing "colors"
-        if (!(ss >> token && token == "\"colors\":")) 
-            { throw std::invalid_argument("Invalid JSON format: missing or incorrect 'colors' field."); }
+        if (!(ss >> token && token == "\"colors\":"))
+            { printf("[DESERIALIZE]::ERROR - Expected 'colors' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 
-            { throw std::invalid_argument("Invalid JSON format: missing opening bracket '[' for 'colors'."); }
+            { printf("[DESERIALIZE]::ERROR - colors Expected '[' - Received Token: %s\n", token.c_str()); return data; }
         
         while (true) 
             {
-                ss >> token;
-        
-                if (token == "]") { break; }
+                if (!(ss >> token) && token == "]") { break; }
+                    { printf("[DESERIALIZE]::ERROR - Expected ']' - Received Token: %s\n", token.c_str()); return data; }
 
                 try { data.colors.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                    { throw std::invalid_argument("Invalid JSON format: invalid floating-point value for 'colors'."); }
+                    { printf("[DESERIALIZE]::ERROR - colors - Received Token: %s\n", token.c_str()); return data; }
             }
 
         // Parsing "normals"
-        if (!(ss >> token && token == "\"normals\":")) {
-            throw std::invalid_argument("Invalid JSON format: missing or incorrect 'normals' field.");
-        }
-        if (!(ss >> token && token == "[")) {
-            throw std::invalid_argument("Invalid JSON format: missing opening bracket '[' for 'normals'.");
-        }
+        if (!(ss >> token && token == "\"normals\":"))
+            { printf("[DESERIALIZE]::ERROR - Expected 'normals' - Received Token: %s\n", token.c_str()); return data; }
+
+        if (!(ss >> token && token == "[")) 
+            { printf("[DESERIALIZE]::ERROR - normals Expected '[' - Received Token: %s\n", token.c_str()); return data; }
 
         while (true) 
             {
-                ss >> token;
+                if (!(ss >> token) && token == "]") { break; }
+                    { printf("[DESERIALIZE]::ERROR - Expected ']' - Received Token: %s\n", token.c_str()); return data; }
 
-                if (token == "]") { break; }
-                
                 try { data.normals.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                    { throw std::invalid_argument("Invalid JSON format: invalid floating-point value for 'normals'."); }
+                    { printf("[DESERIALIZE]::ERROR - normals - Received Token: %s\n", token.c_str()); return data; }
             }
 
         // Parsing "indices"
         if (!(ss >> token && token == "\"indices\":")) 
-            { throw std::invalid_argument("Invalid JSON format: missing or incorrect 'indices' field."); }
+            { printf("[DESERIALIZE]::ERROR - Expected 'indices' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 
-            { throw std::invalid_argument("Invalid JSON format: missing opening bracket '[' for 'indices'."); }
+            { printf("[DESERIALIZE]::ERROR - indices - Expected '[' - Received Token: %s\n", token.c_str()); return data; }
         
         while (true) 
             {
-                ss >> token;
-        
-                if (token == "]") { break; }
-                
+                if (!(ss >> token) && token == "]") { break; }
+                    { printf("[DESERIALIZE]::ERROR - Expected ']' - Received Token: %s\n", token.c_str()); return data; }
+                    
                 try { data.indices.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
-                    { throw std::invalid_argument("Invalid JSON format: invalid integer value for 'indices'."); }
+                    { printf("[DESERIALIZE]::ERROR - indices - Received Token: %s\n", token.c_str()); return data; }
             }
 
         // Parsing "offset"
         if (!(ss >> token && token == "\"offset\":")) 
-            { throw std::invalid_argument("Invalid JSON format: missing or incorrect 'offset' field."); }
+            { printf("[DESERIALIZE]::ERROR - Expected 'offset' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 
-            { throw std::invalid_argument("Invalid JSON format: missing opening bracket '[' for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Expected '[' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token)) 
-            { throw std::invalid_argument("Invalid JSON format: missing value for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Expected Token - Received Token: %s\n", token.c_str()); return data;}
         try { data.offset.x = std::stoi(token); } catch (const std::invalid_argument&) 
-            { throw std::invalid_argument("Invalid JSON format: invalid integer value for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data;}
         if (!(ss >> token && token == ",")) 
-            { throw std::invalid_argument("Invalid JSON format: missing comma ',' after 'offset' x value."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Expected ',' - Received Token: %s\n", token.c_str()); return data;}
         if (!(ss >> token)) 
-            { throw std::invalid_argument("Invalid JSON format: missing value for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Expected Token - Received Token: %s\n", token.c_str()); return data;}
         try { data.offset.y = std::stoi(token); } catch (const std::invalid_argument&) 
-            { throw std::invalid_argument("Invalid JSON format: invalid integer value for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data;}
         if (!(ss >> token && token == ",")) 
-            { throw std::invalid_argument("Invalid JSON format: missing comma ',' after 'offset' y value."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Expected ',' - Received Token: %s\n", token.c_str()); return data;}
         if (!(ss >> token)) 
-            { throw std::invalid_argument("Invalid JSON format: missing value for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Expected Token - Received Token: %s\n", token.c_str()); return data;}
         try { data.offset.z = std::stoi(token); } catch (const std::invalid_argument&)
-            { throw std::invalid_argument("Invalid JSON format: invalid integer value for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data;}
         if (!(ss >> token && token == "]"))
-            { throw std::invalid_argument("Invalid JSON format: missing closing bracket ']' for 'offset'."); }
+            { printf("[DESERIALIZE]::ERROR - Expected ']' - Received Token: %s\n", token.c_str()); return data; }
 
         // Expecting '}'
-        if (!(ss >> token && token == "}")) {
-            throw std::invalid_argument("Invalid JSON format: missing closing brace '}'.");
-        }
+        if (!(ss >> token && token == "}")) 
+            { printf("[DESERIALIZE]::ERROR - Expected '}' - Received Token: %s\n", token.c_str()); return data; }
 
         // Return deserialized ChunkData
         return data;
