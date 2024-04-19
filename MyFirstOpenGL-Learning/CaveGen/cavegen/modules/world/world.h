@@ -20,14 +20,15 @@ class World{
         float fillCutOff = 81.75f;
         int scalar = 16;
         int howSmooth = 5;
+        int area = 1;
 
         void UpdateChunks(glm::vec3&);
         std::set<glm::ivec3, Vec3Compare> visible_chunks;
+        glm::ivec3 lastChunk;
 
     private: 
         int visibleChunks;
         const int maxFOV = 60;
         std::set<glm::ivec3, Vec3Compare> created_chunks;
-        glm::ivec3 lastChunk;
 };
 

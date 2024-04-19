@@ -49,17 +49,19 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
             static_cast<int>(playerLoc.z / chunkSize)
         );
 
+        // TODO: Improve this to only show +/-1 chunk from the current direction and +1 chunk further away
+
         // Check if player has moved to a new chunk
         if (currentChunk != lastChunk) 
             {
                 // Update visible chunks
                 visible_chunks.clear();
 
-                for (int x = -1; x <= 1; x++)                   // -1 is left
+                for (int x = 1 - area; x <= 1 + area; x++)                   // -1 is left
                     {
-                        for (int y = -1; y <= 1; y++)            // -1 is up
+                        for (int y = 0 - area; y <= 0 + area; y++)            // -1 is up
                             {
-                                for (int z = 0; z <= 2; z++)    // +1 is back
+                                for (int z = 1 - area; z <= 1 + area; z++)    // +1 is back
                                     {
                                         glm::ivec3 chunk = glm::ivec3(
                                             currentChunk.x + x,

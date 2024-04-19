@@ -1,4 +1,4 @@
-#include "../cavegen.h"
+#include "../../cavegen.h"
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -13,7 +13,12 @@ void CaveGeneration::userInput()
         float directze = (CaveGeneration::camera.speed * 1.25) * CaveGeneration::camera.zstrafe;
 
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-            { glfwSetWindowShouldClose(window, true); }
+            { 
+                if (CaveGeneration::camera.freeMouse)
+                    { CaveGeneration::camera.killapp = true; }
+                else
+                    { CaveGeneration::camera.freeMouse = true; }
+            }
 
         if(glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
             {
