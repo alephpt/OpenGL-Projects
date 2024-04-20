@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../atomic.h"
-#include "./chunkdata.h"
+#include "./chunk.h"
+#include "./chunkconfig.h"
 
 #include <map>
 #include <set>
@@ -12,14 +12,12 @@ class World{
         World();
         ~World();
 
-        std::map<glm::ivec3, ChunkData, Vec3Compare> MapTable;
+        std::map<glm::ivec3, Chunk, Vec3Compare> MapTable;
         glm::ivec3 currentChunk;
         glm::ivec3 offset;
+        FillMode fillMode = FillMode::Edges;
+        ChunkConfig config = ChunkConfig(fillMode);
         int chunkSize = 30;
-        float noiseThreshold = 21.29f;
-        float fillCutOff = 81.75f;
-        int scalar = 16;
-        int howSmooth = 5;
         int area = 1;
 
         void UpdateChunks(glm::vec3&);

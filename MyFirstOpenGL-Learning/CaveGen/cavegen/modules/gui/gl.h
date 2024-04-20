@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../world/chunkdata.h"
+#include "../world/chunk.h"
 #include "./shader.h"
 
 #include <iostream>
@@ -17,7 +17,7 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     { glViewport(0, 0, width, height); }
 
 // generates and binds Object and Vertex Array buffers, and populates buffer data with Object Vertices
-static inline void bindObjectBuffer(unsigned int &arrayObject, ChunkData &MapChunkData)
+static inline void bindObjectBuffer(unsigned int &arrayObject, Chunk &MapChunk)
     {
         unsigned int EBO, VBO[3];
 
@@ -26,19 +26,19 @@ static inline void bindObjectBuffer(unsigned int &arrayObject, ChunkData &MapChu
         glGenBuffers(1, &EBO);
         glBindVertexArray(arrayObject);
         glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-        glBufferData(GL_ARRAY_BUFFER, MapChunkData.vertices.size() * sizeof(float), &MapChunkData.vertices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, MapChunk.vertices.size() * sizeof(float), &MapChunk.vertices[0], GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, MapChunkData.indices.size() * sizeof(int), &MapChunkData.indices[0], GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, MapChunk.indices.size() * sizeof(int), &MapChunk.indices[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-        glBufferData(GL_ARRAY_BUFFER, MapChunkData.normals.size() * sizeof(float), &MapChunkData.normals[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, MapChunk.normals.size() * sizeof(float), &MapChunk.normals[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-        glBufferData(GL_ARRAY_BUFFER, MapChunkData.colors.size() * sizeof(float), &MapChunkData.colors[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, MapChunk.colors.size() * sizeof(float), &MapChunk.colors[0], GL_STATIC_DRAW);
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
