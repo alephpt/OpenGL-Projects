@@ -79,6 +79,8 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                     }
                 printf("Visible Chunks: %d\n", visible_chunks.size());
                 
+                const char* type = FILL_MODE_STR(fillMode);
+
                 // Remove chunks that are no longer visible
                 auto it = MapTable.begin();
                 while (it != MapTable.end()) 
@@ -87,7 +89,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                             {
                                 glm::ivec3 chunk = it->first;
                                 printf("Removing Chunk: %d, %d, %d\n", chunk.x, chunk.y, chunk.z);
-                                OffloadChunk(&*it, FILL_MODE_STR(fillMode));
+                                OffloadChunk(&*it, type);
                                 it = MapTable.erase(it);
                             } 
                         else 
@@ -101,8 +103,8 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                     {
                         if (MapTable.find(*it) == MapTable.end()) 
                             {
-                                printf("Sourcing %d%d%d.chunk\n", it->x, it->y, it->z);
-                                Chunk* MapChunk = LoadChunk(*it, FILL_MODE_STR(fillMode));
+                                printf("Sourcing %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
+                                Chunk* MapChunk = LoadChunk(*it, type);
 
                                 if (MapChunk->vertices.size() == 0)
                                     {

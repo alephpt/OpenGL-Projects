@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 // Creates Map Segments
 ChunkGenerator::ChunkGenerator(){ chunkData = new Chunk; }
@@ -174,10 +175,12 @@ void ChunkGenerator::GenVertexData(int bIndex, float locZ, float locY, float loc
         std::vector<float> *tempVecs = new std::vector<float>;
         int indexCount = 0;
         int vectorIndex = 0;
+        const int* bIndexTable = indexTable[bIndex];
 
-        while (indexTable[bIndex][indexCount] != -1)
+        while (bIndexTable[indexCount++])
             {
-                switch(indexTable[bIndex][indexCount])
+                const int index = bIndexTable[indexCount - 1];
+                switch (index)
                     {
                         case 0:  // // find the isoverts between 0 and 1
                             tempVecs->push_back(Isovert(locX));
@@ -241,22 +244,17 @@ void ChunkGenerator::GenVertexData(int bIndex, float locZ, float locY, float loc
                             break;
                     }
 
-                auto vectIt = std::find(vertexData.begin(), vertexData.end(), *tempVecs);                 // find the calculated vertex
-                if (vectIt != vertexData.end())                                                           // if it's in the list
-                    {                                                    
-                      vectorIndex = std::distance(vertexData.begin(), vectIt);                                // get the index
-                      chunkData->indices.push_back(vectorIndex);                                              // add it to the indices list
-                    } 
-                else if (vectIt == vertexData.end()) 
-                    {                                                                                         // if it's not in the list
-                      vertexData.push_back(*tempVecs);                                                        // add it to the vertex list
-                      auto vectIt = std::find(vertexData.begin(), vertexData.end(), *tempVecs);               // find the vertex
-                      vectorIndex = std::distance(vertexData.begin(), vectIt);                                // get the index
-                      chunkData->indices.push_back(static_cast<unsigned int>(vectorIndex));                   // add it to the indices list
+                auto it = std::find(vertexData.begin(), vertexData.end(), *tempVecs);
+                if(it == vertexData.end())
+                    {
+                        vectorIndex = vertexData.size();
+                        vertexData.push_back(*tempVecs);
+                        chunkData->indices.push_back(vectorIndex);
                     }
+                else
+                    { chunkData->indices.push_back(it - vertexData.begin()); }
 
                 tempVecs->clear();
-                indexCount++;
             }
 
         delete tempVecs;
@@ -269,11 +267,18 @@ float ChunkGenerator::Isovert(float V)
  // Populates Vertex Coords and Color vectors.
 void ChunkGenerator::PopulateVertices(std::vector<std::vector<float>> &vertexData, glm::ivec3 &offset)
     {
-        //printf("Populating Vertices\n");
+        printf("Populating Vertices\n");
         chunkData->vertices.clear();
+        chunkData->colors.clear();
+
+        if (vertexData.size() == 0)
+            { return; }
 
         for(int i = 0; i < vertexData.size(); i++)
             {
+                if (vertexData[i].size() == 0)
+                    { continue; }
+
                 float colorvar = (float)(rand() % 33);
 
                 if( colorvar < 16.5 )
@@ -290,14 +295,17 @@ void ChunkGenerator::PopulateVertices(std::vector<std::vector<float>> &vertexDat
                 chunkData->colors.push_back(colorvar / (vertexData[i][1] + 0.2f));
             }
 
-        deduplicateVertices();
+        //deduplicateVertices();
     }
 
  // Finds the coordinates of vertices based on index, and calculates normal directions.
 void ChunkGenerator::CalculateNormals(std::vector<std::vector<float>> &vertexData)
     {
-        //printf("Calculating Normals\n");
+        printf("Calculating Normals\n");
         chunkData->normals.clear();
+
+        if (vertexData.size() == 0 || chunkData->indices.size() == 0)
+            { return; }
 
         // Initialize normals for each vertex to zero
         std::vector<glm::vec3> normals(vertexData.size(), glm::vec3(0.0f));
@@ -305,24 +313,36 @@ void ChunkGenerator::CalculateNormals(std::vector<std::vector<float>> &vertexDat
         // Calculate normals for each triangle and add them to corresponding vertices
         for (int i = 0; i < chunkData->indices.size(); i += 3) 
             {
-                std::vector<float> p1 = vertexData[chunkData->indices[i]];
-                std::vector<float> p2 = vertexData[chunkData->indices[i + 1]];
-                std::vector<float> p3 = vertexData[chunkData->indices[i + 2]];
+                if (i + 2 >= chunkData->indices.size()) // Prevent out of bounds if the number of indices is not a multiple of 3
+                    { break; }
 
-                glm::vec3 v1 = glm::vec3(p1[0], p1[1], p1[2]);
-                glm::vec3 v2 = glm::vec3(p2[0], p2[1], p2[2]);
-                glm::vec3 v3 = glm::vec3(p3[0], p3[1], p3[2]);
+                // Retrieve vertices for the current triangle
+                int index1 = chunkData->indices[i];
+                int index2 = chunkData->indices[i + 1];
+                int index3 = chunkData->indices[i + 2];
 
-                glm::vec3 edge1 = v2 - v1;
-                glm::vec3 edge2 = v3 - v1;
+                // Check if indices are within bounds
+                if (index1 < 0 || index1 >= vertexData.size() ||
+                    index2 < 0 || index2 >= vertexData.size() ||
+                    index3 < 0 || index3 >= vertexData.size()) 
+                    {
+                        printf("Yo!! Index is out of bounds!");
+                        printf("We have a problem: %d, %d, %d\n", index1, index2, index3);
+                        printf("Indices: %d\n", chunkData->indices.size());
+                        printf("Vertices: %d\n", vertexData.size());
+                        continue; // Skip if any index is out of bounds
+                    }
 
-                // Calculate the face normal
-                glm::vec3 faceNormal = glm::cross(edge1, edge2);
+                // Retrieve vertices for the current triangle
+                const std::vector<float>& v0 = vertexData[index1];
+                const std::vector<float>& v1 = vertexData[index2];
+                const std::vector<float>& v2 = vertexData[index3];
 
-                // Add the face normal to each vertex of the triangle
-                normals[chunkData->indices[i]] += faceNormal;
-                normals[chunkData->indices[i + 1]] += faceNormal;
-                normals[chunkData->indices[i + 2]] += faceNormal;
+                glm::vec3 normal = glm::cross(glm::vec3(v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]), glm::vec3(v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]));
+
+                normals[index1] += normal;
+                normals[index2] += normal;
+                normals[index3] += normal;
             }
 
         // Normalize the normals
