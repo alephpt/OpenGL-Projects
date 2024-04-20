@@ -46,17 +46,17 @@ bool CaveGeneration::initBuffers()
 
         // buffer data
         shader = ShaderData();
-        VAOs.resize(Map.MapTable.size());
+        VAOs.resize(world.MapTable.size());
         int VAO_index = 0;
 
-        for (auto& chunk : Map.MapTable)
+        for (auto& chunk : world.MapTable)
             { bindObjectBuffer(VAOs[VAO_index++], chunk.second); }
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_DITHER);
         glDisable(GL_CULL_FACE);
         
-        current_chunks = Map.visible_chunks;
+        current_chunks = world.visible_chunks;
 
         return true;
     }
@@ -121,7 +121,7 @@ void CaveGeneration::render()
 
                 // If the map table size changes, reinitialize the object buffer
                 int VAO_index = 0;
-                if (current_chunks != Map.visible_chunks)
+                if (current_chunks != world.visible_chunks)
                     {
                         printf("Map Table Size Changed\n");
 
@@ -129,19 +129,19 @@ void CaveGeneration::render()
                             { glDeleteVertexArrays(1, &arrayObject); }
 
                         VAOs.clear();
-                        VAOs.resize(Map.MapTable.size());
+                        VAOs.resize(world.MapTable.size());
                         VAO_index = 0;
 
 
-                        for (auto& chunk : Map.MapTable)
+                        for (auto& chunk : world.MapTable)
                             { bindObjectBuffer(VAOs[VAO_index++], chunk.second); }
 
-                        current_chunks = Map.visible_chunks;
+                        current_chunks = world.visible_chunks;
                         printf("New Map Table Size: %i\n", current_chunks.size());
                     }
 
                 VAO_index = 0;
-                for (auto& chunk : Map.MapTable)
+                for (auto& chunk : world.MapTable)
                     {
                         glBindVertexArray(VAOs[VAO_index++]);
                         glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);

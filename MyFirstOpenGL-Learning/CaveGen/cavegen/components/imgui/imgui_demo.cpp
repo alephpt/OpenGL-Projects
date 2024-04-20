@@ -2009,20 +2009,20 @@ static void ShowDemoWindowLayout()
         HelpMarker("This is testing the vertical alignment that gets applied on text to keep it aligned with widgets. Lines only composed of text or \"small\" widgets fit in less vertical spaces than lines with normal widgets.");
 
         ImGui::Text("One\nTwo\nThree"); ImGui::SameLine();
-        ImGui::Text("Hello\nWorld"); ImGui::SameLine();
+        ImGui::Text("Hello\nMap"); ImGui::SameLine();
         ImGui::Text("Banana");
 
         ImGui::Text("Banana"); ImGui::SameLine();
-        ImGui::Text("Hello\nWorld"); ImGui::SameLine();
+        ImGui::Text("Hello\nMap"); ImGui::SameLine();
         ImGui::Text("One\nTwo\nThree");
 
         ImGui::Button("HOP##1"); ImGui::SameLine();
         ImGui::Text("Banana"); ImGui::SameLine();
-        ImGui::Text("Hello\nWorld"); ImGui::SameLine();
+        ImGui::Text("Hello\nMap"); ImGui::SameLine();
         ImGui::Text("Banana");
 
         ImGui::Button("HOP##2"); ImGui::SameLine();
-        ImGui::Text("Hello\nWorld"); ImGui::SameLine();
+        ImGui::Text("Hello\nMap"); ImGui::SameLine();
         ImGui::Text("Banana");
 
         ImGui::Button("TEST##1"); ImGui::SameLine();

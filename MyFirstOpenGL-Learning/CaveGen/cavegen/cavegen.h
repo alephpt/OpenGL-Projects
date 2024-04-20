@@ -24,7 +24,7 @@ class CaveGeneration {
         static Camera camera;
 
     private:
-        World Map;
+        World world;
         GLFWwindow* window;
         std::vector<unsigned int> VAOs;
         std::set<glm::ivec3, Vec3Compare> current_chunks;

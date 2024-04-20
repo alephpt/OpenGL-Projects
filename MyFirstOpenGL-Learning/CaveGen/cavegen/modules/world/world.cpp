@@ -1,27 +1,28 @@
 
 #include "./world.h"
-#include "./chunk.h"
+#include "./chunkfactory.h"
 
 // Need to seperate World and Chunk classes
-World::World(){ 
-    visibleChunks = maxFOV / chunkSize;
-    lastChunk = glm::ivec3(0, 0, 0);
-    MapTable.clear();
-    created_chunks.clear();
-    visible_chunks.clear();
-
-    printf("Creating World\n");
-    printf("Chunk Size: %d\n", chunkSize);
-    printf("Visible Chunks: %d\n", visibleChunks);
-    return ; 
-}
+World::World()
+    { 
+        visibleChunks = maxFOV / chunkSize;
+        lastChunk = glm::ivec3(0, 0, 0);
+        MapTable.clear();
+        created_chunks.clear();
+        visible_chunks.clear();
+        
+        printf("Creating World\n");
+        printf("Chunk Size: %d\n", chunkSize);
+        printf("Visible Chunks: %d\n", visibleChunks);
+        return ; 
+    }
 
 World::~World() 
     {
         // Offload all chunks to disk - equivalent to saving
         for (auto it = MapTable.begin(); it != MapTable.end(); it++) 
             {
-                OffloadChunkData(it->first, it->second);
+                OffloadChunk(&*it, FILL_MODE_STR(fillMode));
 
                 // delete chunk data
                 it->second.vertices.clear();
@@ -42,6 +43,9 @@ World::~World()
 
 void World::UpdateChunks(glm::vec3 &playerLoc) 
     {
+        if (fillMode != FillMode::Custom) 
+            { config = ChunkConfig(fillMode); }
+
         // Calculate current chunk based on player's position
         glm::ivec3 currentChunk = glm::ivec3(
             static_cast<int>(playerLoc.x / chunkSize),
@@ -83,7 +87,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                             {
                                 glm::ivec3 chunk = it->first;
                                 printf("Removing Chunk: %d, %d, %d\n", chunk.x, chunk.y, chunk.z);
-                                OffloadChunkData(chunk, it->second);
+                                OffloadChunk(&*it, FILL_MODE_STR(fillMode));
                                 it = MapTable.erase(it);
                             } 
                         else 
@@ -98,13 +102,13 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                         if (MapTable.find(*it) == MapTable.end()) 
                             {
                                 printf("Sourcing %d%d%d.chunk\n", it->x, it->y, it->z);
-                                ChunkData* MapChunk = LoadChunkData(*it);
+                                Chunk* MapChunk = LoadChunk(*it, FILL_MODE_STR(fillMode));
 
                                 if (MapChunk->vertices.size() == 0)
                                     {
                                         printf("\t .. Generating New Chunk: %d, %d, %d\n", it->x, it->y, it->z);
                                         glm::ivec3 offset = *it * chunkSize;
-                                        MapChunk = Chunk::Generate(offset, chunkSize, noiseThreshold, fillCutOff, scalar, howSmooth);
+                                        MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
                                         MapTable[*it] = *MapChunk;
                                         created_chunks.insert(*it);
                                     } 

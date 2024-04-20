@@ -46,48 +46,49 @@ void CaveGeneration::imgui(bool show_window)
                 if(ImGui::Button(" Exit "))
                     { CaveGeneration::camera.killapp = true; }
                 
-                ImGui::SliderInt(" - Scale", &Map.scalar, 0, 25);
-                ImGui::SliderInt(" - Smoothing Level ", &Map.howSmooth, 0, 10);
-                ImGui::SliderFloat(" - Noise Thresh ", &Map.noiseThreshold, 0.0f, 100.0f);
-                ImGui::SliderFloat(" - Fill Cutoff", &Map.fillCutOff, 0.0f, 100.0f);
-                ImGui::SliderInt(" - Visible Area", &Map.area, 0, 5);
+                if (ImGui::SliderInt(" - Scale", &world.config.scalar, 0, 25) ||
+                    ImGui::SliderInt(" - Smoothing Level ", &world.config.howSmooth, 0, 10) ||
+                    ImGui::SliderFloat(" - Noise Thresh ", &world.config.noiseThreshold, 0.0f, 100.0f) ||
+                    ImGui::SliderFloat(" - Fill Cutoff", &world.config.fillCutOff, 0.0f, 100.0f))
+                    { 
+                        world.fillMode = FillMode::Custom;
+                        world.visible_chunks.clear();
+                    }
+
+                ImGui::SliderInt(" - Visible Area", &world.area, 0, 5);
 
                 if(ImGui::Button("Regen"))
-                    { Map.MapTable.clear(); }
+                    { world.visible_chunks.clear(); }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Solid"))
                     {
-                        Map.noiseThreshold = 72.44f;
-                        Map.fillCutOff = 27.37f;
-                        Map.MapTable.clear();
+                        world.fillMode = FillMode::Solid;
+                        world.visible_chunks.clear();
                     }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Edges"))
                     {
-                        Map.noiseThreshold = 21.29f;
-                        Map.fillCutOff = 85.05f;
-                        Map.MapTable.clear();
+                        world.fillMode = FillMode::Edges;
+                        world.visible_chunks.clear();
                     }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Tunnels"))
                     {
-                        Map.noiseThreshold = 77.18f;
-                        Map.fillCutOff = 17.69f;
-                        Map.MapTable.clear();
+                        world.fillMode = FillMode::Tunnels;
+                        world.visible_chunks.clear();
                     }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Cells"))
-                  {
-                      Map.noiseThreshold = 81.36f;
-                      Map.fillCutOff = 13.31f;
-                      Map.MapTable.clear();
-                  }
+                    {
+                        world.fillMode = FillMode::Cells;
+                        world.visible_chunks.clear();
+                    }
 
-                Map.UpdateChunks(CaveGeneration::camera.location);
+                world.UpdateChunks(CaveGeneration::camera.location);
 
                 ImGui::End();
             }
@@ -99,7 +100,7 @@ void CaveGeneration::imgui(bool show_window)
                 int vertexCount = 0;
                 int triangleCount = 0;
 
-                for (auto& chunk : Map.MapTable)
+                for (auto& chunk : world.MapTable)
                     {
                       vertexCount += chunk.second.vertices.size();
                       triangleCount += chunk.second.indices.size();
@@ -107,8 +108,8 @@ void CaveGeneration::imgui(bool show_window)
                     
                 ImGui::Text("Vertex Count : %i - Triangles : %i \n" , vertexCount, triangleCount);
                 ImGui::Text("   Cordinate     X       Y       Z");
-                ImGui::Text(" - Grid Pos  -    %i    %i    %i", Map.currentChunk[0], Map.currentChunk[1], Map.currentChunk[2]);
-                ImGui::Text(" - Chunk Pos -    %i    %i    %i", Map.lastChunk[0], Map.lastChunk[1], Map.lastChunk[2]);
+                ImGui::Text(" - Grid Pos  -    %i    %i    %i", world.currentChunk[0], world.currentChunk[1], world.currentChunk[2]);
+                ImGui::Text(" - Chunk Pos -    %i    %i    %i", world.lastChunk[0], world.lastChunk[1], world.lastChunk[2]);
                 ImGui::Text(" - Location  -    %.2f    %.2f    %.2f", camera.location.x, camera.location.y, camera.location.z);
                 ImGui::Text(" - Direction -    %.2f    %.2f    %.2f\n", camera.direction.x, camera.direction.y, camera.direction.z);
                 
