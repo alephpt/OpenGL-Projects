@@ -56,6 +56,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
         // Check if player has moved to a new chunk
         if (currentChunk != lastChunk) 
             {
+                printf("Updating Chunks:\n");
                 // Update visible chunks
                 visible_chunks.clear();
 
@@ -90,7 +91,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                     {
                         if (MapTable.find(*it) == MapTable.end()) { continue; }
 
-                        printf("Deleting %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
+                        printf("\t - Deleting %s Chunk %d %d %d \n", type, it->x, it->y, it->z);
                         OffloadChunk(&*MapTable.find(*it), type);
                         MapTable.erase(*it);
                     }
@@ -102,7 +103,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
 
                         if (!LoadChunk(MapChunk, type, *it))
                             {
-                                printf("\t Generating New Chunk: %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
+                                printf("\t - Generating New %s Chunk %d %d %d\n", type, it->x, it->y, it->z);
                                 glm::ivec3 offset = *it * chunkSize;
                                 MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
                             }
@@ -111,9 +112,10 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                         delete MapChunk;
                     }            
 
-                printf("\t MapTable Size: %d\n", MapTable.size());
-
-                printf("Visible Chunks: %d\n", visible_chunks.size());
+                printf("\n\tMapTable Size: %d\n", MapTable.size());
+                printf("\tVisible Chunks: %d\n", visible_chunks.size());
+                printf("\tNew Chunks: %d\n", new_chunks.size());
+                printf("\tDelete Chunks: %d\n\n", delete_chunks.size());
                 // Update last chunk
                 lastChunk = currentChunk;
             }

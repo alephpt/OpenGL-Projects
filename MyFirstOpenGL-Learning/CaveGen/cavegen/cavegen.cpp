@@ -103,15 +103,12 @@ void CaveGeneration::updateWorld()
 
                 for (auto& chunk : world.new_chunks)
                     { 
-                        printf("New Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
+                        printf("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
 
-                        if (chunk_buffers.find(chunk) == chunk_buffers.end())
-                            {
-                                unsigned int buffer = 0;
-                                glGenVertexArrays(1, &buffer);
-                                chunk_buffers[chunk] = buffer;
-                                bindObjectBuffer(buffer, world.MapTable[chunk]);
-                            }
+                        unsigned int buffer = 0;
+                        glGenVertexArrays(1, &buffer);
+                        chunk_buffers[chunk] = buffer;
+                        bindObjectBuffer(buffer, world.MapTable[chunk]);
                     }
                 world.new_chunks.clear();
                 
