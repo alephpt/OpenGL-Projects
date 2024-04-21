@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../atomic.h"
+#include "atomic.h"
 
 struct ChunkConfig {
     float noiseThreshold;

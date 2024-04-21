@@ -3,11 +3,13 @@
 #include "./modules/gui/shader.h"
 #include "cavegen.h"
 
-
+// static camera object
 Camera CaveGeneration::camera = Camera();
 
 CaveGeneration::CaveGeneration()
     {
+        Logger::SetLevel(debugLevel);
+
         if (!initGLFW())
             { throw std::runtime_error("Failed to initialize GLFW"); }
 

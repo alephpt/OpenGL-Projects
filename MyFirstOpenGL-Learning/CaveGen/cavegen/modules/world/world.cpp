@@ -56,7 +56,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
         // Check if player has moved to a new chunk
         if (currentChunk != lastChunk) 
             {
-                printf("Updating Chunks:\n");
+                printf("\nUpdating Chunks:\n");
                 // Update visible chunks
                 visible_chunks.clear();
 
@@ -106,6 +106,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                                 printf("\t - Generating New %s Chunk %d %d %d\n", type, it->x, it->y, it->z);
                                 glm::ivec3 offset = *it * chunkSize;
                                 MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
+                                MapChunk->log();
                             }
 
                         MapTable.emplace(*it, *MapChunk);
