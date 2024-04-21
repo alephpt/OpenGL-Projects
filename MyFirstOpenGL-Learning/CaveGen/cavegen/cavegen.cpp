@@ -26,12 +26,12 @@ bool CaveGeneration::initGLFW()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        window = glfwCreateWindow(screenWidth, screenHeight, "Cave Generation", NULL, NULL);
+        this->window = glfwCreateWindow(screenWidth, screenHeight, "Cave Generation", NULL, NULL);
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1);
 
         bool err = gladLoadGL() == 0;
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) || err)
         {
             std::cout << "Failed to initialize GLAD" << std::endl;
             return false;
@@ -66,7 +66,7 @@ bool CaveGeneration::initBuffers()
         return true;
     }
 
-void mouseCallback(GLFWwindow* window, double xpos, double ypos)
+static inline void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     {
         float xoffset = xpos - CaveGeneration::camera.lastX;
         float yoffset = CaveGeneration::camera.lastY - ypos;
@@ -97,7 +97,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void CaveGeneration::updateWorld()
     {
         // Update the world chunks
-        world.UpdateChunks(CaveGeneration::camera.location);
+        this->world.UpdateChunks(CaveGeneration::camera.location);
         
         // If the map table size changes, reinitialize the object buffer
         if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
@@ -135,6 +135,7 @@ void CaveGeneration::updateWorld()
 
         for (auto& chunk : world.MapTable)
             {
+                printf("Binding and Drawing Chunk: %d %d %d\n", chunk.first.x, chunk.first.y, chunk.first.z);
                 glBindVertexArray(chunk_buffers[chunk.first]);
                 glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
             }
@@ -146,7 +147,7 @@ void CaveGeneration::render()
     {
         bool show_window = true;
 
-        while(!glfwWindowShouldClose(window) && !camera.killapp)
+        while(!glfwWindowShouldClose(this->window) && !camera.killapp)
             {
 
                 // clear screen data
@@ -174,7 +175,7 @@ void CaveGeneration::render()
                 MVP();
                 
                 imgui(show_window);
-                glfwSwapBuffers(window);
+                glfwSwapBuffers(this->window);
             }
 
         cleanUp();

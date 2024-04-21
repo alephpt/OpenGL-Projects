@@ -49,13 +49,13 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
             static_cast<int>(playerLoc.z / chunkSize)
         );
 
-        std::set<glm::ivec3, Vec3Compare> previous_chunks = visible_chunks;
 
         // Check if player has moved to a new chunk
         if (currentChunk != lastChunk) 
             {
-                printf("\nUpdating Chunks:\n");
                 // Update visible chunks
+                printf("\nUpdating Chunks:\n");
+                std::set<glm::ivec3, Vec3Compare> previous_chunks = visible_chunks;
                 visible_chunks.clear();
 
                 // Create a new set of visible chunks
