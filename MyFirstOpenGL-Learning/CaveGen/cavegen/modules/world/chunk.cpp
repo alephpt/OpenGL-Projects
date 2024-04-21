@@ -4,61 +4,41 @@
 #include <string.h>
 
 // Implement Serialize and Deserialize for Chunk
-/*inline std::string Chunk::Serialize() const 
+inline std::string Chunk::Serialize() const 
     {
         std::stringstream ss;
-        ss << "{";
-        ss << "\"vertices\": [\r";
+        ss << "{\r";
         
-        for (size_t i = 0; i < vertices.size(); i++) 
+        ss << "\"vertex\": [\r";
+        for (auto& vertex : vertices) 
             {
-                ss << vertices[i];
-                
-                if (i < vertices.size() - 1) 
-                    { ss << ","; }
+                ss << "{ " << vertex.position.x << "," << vertex.position.y << "," << vertex.position.z << "|";
+                ss << vertex.color.x << "," << vertex.color.y << "," << vertex.color.z << "|";
+                ss << vertex.normal.x << "," << vertex.normal.y << "," << vertex.normal.z << " },\r";
             }
-        
         ss << "\r],\r";
-        ss << "\"colors\": [\r";
-        
-        for (size_t i = 0; i < colors.size(); i++) 
-            {
-                ss << colors[i];
-        
-                if (i < colors.size() - 1) 
-                    { ss << ","; }
-            }
 
-        ss << "\r],\r";
-        ss << "\"normals\": [\r";
-
-        for (size_t i = 0; i < normals.size(); i++) 
-            {
-                ss << normals[i];
-                
-                if (i < normals.size() - 1) 
-                { ss << ","; }
-            }
-
-        ss << "\r],\r";
         ss << "\"indices\": [\r";
-
-        for (size_t i = 0; i < indices.size(); i++) 
-            {
-                ss << indices[i];
-
-                if (i < indices.size() - 1) 
-                    { ss << ","; }
-            }
-
+        for (auto& index : indices) 
+            { ss << index << ","; }
         ss << "\r],\r";
+
         ss << "\"offset\": [\r" << offset.x << "," << offset.y << "," << offset.z;
-        ss << "\r]}\r";
+        ss << "\r]\r}\r";
 
         // Append EOF character
         ss << '\0';
 
         return ss.str();
+    }
+
+//
+static inline bool consume(std::stringstream& ss, const std::string& token) 
+    {
+        std::string t;
+        if (ss >> t && t != token) 
+            { printf("[DESERIALIZE]::ERROR - Expected Token: %s Received Token: %s\n", token.c_str(), t.c_str()); return false; }
+        return true;
     }
 
 inline Chunk* Chunk::Deserialize(const std::string& json) 
@@ -67,79 +47,34 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
         std::stringstream ss(json);
         std::string token;
 
-        // Parsing "vertices"
-        if (!(ss >> token && token == "{\"vertices\":")) 
-            { printf("[DESERIALIZE]::ERROR - Expected '{vertices' - Received Token: %s\n", token.c_str()); return data; }
-        if (!(ss >> token && token == "[")) 
-            { printf("[DESERIALIZE]::ERROR - vertices Expected '[' - Received Token: %s\n", token.c_str()); return data; }
-        
-        if (ss >> token && token != "],") 
-            { 
-                std::istringstream iss(token);
+        std::vector<Vertex> vertices;
 
-                while(std::getline(iss, token, ','))
+        // Deserialize vertices
+        if (ss >> token && token != "{") 
+            { printf("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); return data; }
+
+        if (ss >> token && token != "\"vertex\":") 
+            { printf("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\": Received Token: %s\n", token.c_str()); return data; }
+
+        if (ss >> token && token != "[") 
+            { printf("[DESERIALIZE]::ERROR - vertex - Expected Token: [ Received Token: %s\n", token.c_str()); return data; }
+
+        // disassemble vertex { (x,y,z), (r,g,b), (nx,ny,nz) }
+        while (ss >> token && token != "}") 
+            { 
+                if (token == "{") continue;
+                
+                std::istringstream iss(token);
+                while(std::getline(iss, token, '|'))
                     {
-                        try { data->vertices.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                            { printf("[DESERIALIZE]::ERROR - vertices - Received Token: %s\n", token.c_str()); return data; }
+                        std::istringstream iss(token);
+                        std::string value;
+                        
+                        
                     }
+
             }
 
-        // Parsing "colors"
-        if (!(ss >> token && token == "\"colors\":"))
-            { printf("[DESERIALIZE]::ERROR - Expected 'colors' - Received Token: %s\n", token.c_str()); return data; }
-        if (!(ss >> token && token == "[")) 
-            { printf("[DESERIALIZE]::ERROR - colors Expected '[' - Received Token: %s\n", token.c_str()); return data; }
-        
-        if (ss >> token && token != "],") 
-            { 
-                std::istringstream iss(token);
-                while(std::getline(iss, token, ','))
-                    {
-                        try { data->colors.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                            { printf("[DESERIALIZE]::ERROR - colors - Received Token: %s\n", token.c_str()); return data; }
-                    }
-            }
-
-        // Parsing "normals"
-        if (!(ss >> token && token == "\"normals\":"))
-            { printf("[DESERIALIZE]::ERROR - Expected 'normals' - Received Token: %s\n", token.c_str()); return data; }
-
-        if (!(ss >> token && token == "[")) 
-            { printf("[DESERIALIZE]::ERROR - normals Expected '[' - Received Token: %s\n", token.c_str()); return data; }
-
-        if (ss >> token && token != "],") 
-            { 
-                std::istringstream iss(token);
-                while(std::getline(iss, token, ','))
-                    {
-                        try { data->normals.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                            { printf("[DESERIALIZE]::ERROR - normals - Received Token: %s\n", token.c_str()); return data; }
-                    }
-            }
-
-        // Parsing "indices"
-        if (!(ss >> token && token == "\"indices\":")) 
-            { printf("[DESERIALIZE]::ERROR - Expected 'indices' - Received Token: %s\n", token.c_str()); return data; }
-        if (!(ss >> token && token == "[")) 
-            { printf("[DESERIALIZE]::ERROR - indices - Expected '[' - Received Token: %s\n", token.c_str()); return data; }
-        
-        if (ss >> token && token != "],") 
-            { 
-                std::istringstream iss(token);
-
-                while(std::getline(iss, token, ','))
-                    {
-                        try { data->indices.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
-                            { printf("[DESERIALIZE]::ERROR - indices - Received Token: %s\n", token.c_str()); return data; }
-                    }
-            }
-
-        // Parsing "offset"
-        if (!(ss >> token && token == "\"offset\":")) 
-            { printf("[DESERIALIZE]::ERROR - Expected 'offset' - Received Token: %s\n", token.c_str()); return data; }
-        if (!(ss >> token && token == "[")) 
-            { printf("[DESERIALIZE]::ERROR - offset - Expected '[' - Received Token: %s\n", token.c_str()); return data; }
-        
         if (ss >> token && token != "]}") 
             { 
                 std::vector<int> offset;
@@ -154,12 +89,12 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
             }
 
         ss.clear();
-//        data->log();
+        data->log();
 
         // Return deserialized Chunk
         return data;
     }
-*/
+
 void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
     {
         // Offload chunk data to disk
@@ -172,7 +107,7 @@ void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
         if (!ofs) 
             { std::cerr << " [OffloadChunk]: Failed to Offload Chunk to File: " << filename << std::endl; return; }
 
-        //ofs << chunk->second.Serialize().c_str();
+        ofs << chunk->second.Serialize().c_str();
         ofs.close();
     }
 
@@ -199,11 +134,14 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
         serializedData.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
         // Deserialize data to Chunk object
-        //MapChunk = Chunk::Deserialize(serializedData);
-        return false;
+        MapChunk = Chunk::Deserialize(serializedData);
 
         // TODO: Fix Format of Serialized Data
         ifs.close();
+
+        if (MapChunk->vertices.size() == 0) 
+            { std::cerr << "\t [LoadChunk]: Failed to Load Chunk from File: " << filename << std::endl; return false; }
+
         return true;
     }
 

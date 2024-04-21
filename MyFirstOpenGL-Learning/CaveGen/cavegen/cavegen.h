@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/world/world.h"
+#include "modules/world/map.h"
 #include "modules/gui/camera.h"
 #include "components/utility/logger.h"
 

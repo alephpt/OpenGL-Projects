@@ -24,8 +24,8 @@ struct Chunk{
 	FillMode fillMode;
 
 	// to JSON
-	//std::string Serialize() const;
-	//static Chunk* Deserialize(const std::string&);
+	std::string Serialize() const;
+	static Chunk* Deserialize(const std::string&);
 	void log() const;
 };
 

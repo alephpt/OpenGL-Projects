@@ -1,9 +1,8 @@
 
-#include "./world.h"
-#include "./chunkfactory.h"
+#include "map.h"
+#include "chunkfactory.h"
 
 #include <algorithm>
-#include "world.h"
 
 // Need to seperate World and Chunk classes
 World::World()
