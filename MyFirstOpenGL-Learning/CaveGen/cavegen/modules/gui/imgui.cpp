@@ -14,7 +14,7 @@ void CaveGeneration::imguiInit()
         ImGui::StyleColorsDark();
     }
 
-void CaveGeneration::imgui(bool show_window)
+void CaveGeneration:: imgui(bool show_window)
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
