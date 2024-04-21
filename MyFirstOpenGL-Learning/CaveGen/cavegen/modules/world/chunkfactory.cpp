@@ -216,15 +216,30 @@ void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
                     }
 
 
-                auto it = std::find(positions.begin(), positions.end(), _vertices);
-                if(it == positions.end())
-                    {
-                        _vec_idx = positions.size();
-                        positions.push_back(_vertices);
-                        indices.push_back(_vec_idx);
+                // auto it = std::find(positions.begin(), positions.end(), _vertices);
+                // if(it == positions.end())
+                //     {
+                //         _vec_idx = positions.size();
+                //         positions.push_back(_vertices);
+                //         indices.push_back(_vec_idx);
+                //     }
+                // else
+                //     { indices.push_back(it - positions.begin()); }
+
+                auto vectIt = std::find(positions.begin(), positions.end(), _vertices);                 // find the calculated vertex
+                if (vectIt != positions.end())                                                           // if it's in the list
+                    {                                                    
+                      _vec_idx = std::distance(positions.begin(), vectIt);                                // get the index
+                      indices.push_back(_vec_idx);                                              // add it to the indices list
+                    } 
+                else if (vectIt == positions.end()) 
+                    {                                                                                         // if it's not in the list
+                      positions.push_back(_vertices);                                                        // add it to the vertex list
+                      auto vectIt = std::find(positions.begin(), positions.end(), _vertices);               // find the vertex
+                      _vec_idx = std::distance(positions.begin(), vectIt);                                // get the index
+                      indices.push_back(static_cast<unsigned int>(_vec_idx));                   // add it to the indices list
                     }
-                else
-                    { indices.push_back(it - positions.begin()); }
+
 
                 _vertices = glm::vec3(0.0f);
                 _idx++;
@@ -296,10 +311,12 @@ void ChunkGenerator::Normalize()
 
 void ChunkGenerator::constructChunk() 
     {
-
         // Add normals to vertices
         for(int i = 0; i < positions.size(); i++)
-            { chunkData->vertices.push_back({positions[i], colors[i], normals[i]}); }
+            { 
+                if (i < colors.size() && i < normals.size())
+                    { chunkData->vertices.push_back({positions[i], colors[i], normals[i]});  }
+            }
         
         // Add indices to chunk
         chunkData->indices = indices;
