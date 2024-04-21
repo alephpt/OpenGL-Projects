@@ -1,23 +1,12 @@
 #include "chunkfactory.h"
 
 #include "../../components/marching.h"
-#include "../../components/utility/logger.h"
 
 #include <algorithm>
-#include <map>
-#include <vector>
-#include <chrono>
-#include <random>
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-static unsigned int getRandomSeed()
-    {
-        auto now = std::chrono::system_clock::now();
-        auto duration = now.time_since_epoch();
-        return static_cast<unsigned int>(std::chrono::duration_cast<std::chrono::milliseconds>(duration).count());
-    }
 
 // Creates Map Segments
 ChunkGenerator::ChunkGenerator(){ chunkData = new Chunk(); }
@@ -27,26 +16,28 @@ ChunkGenerator::~ChunkGenerator(){ delete chunkData; }
 // on the cutoff during marching cubes indexing.
 Chunk* ChunkGenerator::Generate(glm::ivec3 offset, int chunkSize, ChunkConfig config)
     {
-        ChunkGenerator *_chunk_t = new ChunkGenerator();
-        _chunk_t->size = chunkSize;
-        _chunk_t->scalar = config.scalar;
-        _chunk_t->howSmooth = config.howSmooth;
-        _chunk_t->noiseThreshold = config.noiseThreshold;
-        _chunk_t->fillCutOff = config.fillCutOff;
-        _chunk_t->chunkData->offset = offset;
+        ChunkGenerator *chunk = new ChunkGenerator();
+        chunk->scalar = config.scalar;
+        chunk->howSmooth = config.howSmooth;
+        chunk->noiseThreshold = config.noiseThreshold;
+        chunk->fillCutOff = config.fillCutOff;
+        chunk->chunkData->offset = offset;
 
-        srand(glfwGetTime() * getRandomSeed());
-
-        _chunk_t->NoiseGeneration();
+        srand(glfwGetTime());
         
-        for (int smooth = 0; smooth < _chunk_t->howSmooth; smooth++)
-            { _chunk_t->Smoother(); }
+        //printf("Generating Noise\n");
+        chunk->NoiseGeneration();
         
-        _chunk_t->March();
-        _chunk_t->PopulateVertices();
-        _chunk_t->CalculateNormals();
-
-        return _chunk_t->chunkData;
+        //printf("Smoothing Noise\n");
+        for (int smooth = 0; smooth < chunk->howSmooth; smooth++)
+            { chunk->Smoother(); }
+        
+        //printf("Marching Cubes\n");
+        chunk->March();
+        
+        printf("Generated Chunk:\n");
+        chunk->chunkData->log();
+        return chunk->chunkData;
     }
 
 // Generates random numbers and assigns weighted values 
@@ -73,51 +64,40 @@ void ChunkGenerator::NoiseGeneration()
 // Passes grid coordinates to a comparitor to populate the destination index list.
 void ChunkGenerator::Smoother()
     {
-        std::vector<float> _temp_verts;
+        std::vector<float> tempVerts;
 
         for(int z = 0; z < size; z++)
             {
                 for(int y = 0; y < size; y++)
                     {
                         for(int x = 0; x < size; x++)
-                          { _temp_verts.push_back(Cellular(z, y, x)); }
+                          { tempVerts.push_back(Cellular(z, y, x)); }
                     }
             }
 
-        new_vertices = _temp_verts;
+        new_vertices = tempVerts;
     }
-
-static inline int index(int z, int y, int x, int size) { return (z * size + y) * size + x; }
 
 // takes a set of coordinates, searches their neighboring indices for +/- values
 // and creates a ramped average based on the value and the number of neighboring cells.
-float ChunkGenerator::Cellular(int z, int y, int x)
+float ChunkGenerator::Cellular(int currentZ, int currentY, int currentX)
    {
         float cellAvg = 0.0f;
         float cellularCount = 0;
 
-        for(int _z = z - 1; _z <= z + 1; _z++)
+        for(int rangerZ = currentZ - 1; rangerZ <= currentZ + 1; rangerZ++)
             {
-                for(int _y = y - 1; _y <= y + 1; _y++)
+                for(int rangerY = currentY - 1; rangerY <= currentY + 1; rangerY++)
                     {
-                        for(int _x = x - 1; _x <= x + 1; _x++)
+                        for(int rangerX = currentX - 1; rangerX <= currentX + 1; rangerX++)
                             {
-                                // if the cell is within the bounds of the grid, then we want to
-                                // add the value to the average to be divided by the number of cells
-                                if (_x >= 0 && _x < size && 
-                                    _y >= 0 && _y < size && 
-                                    _z >= 0 && _z < size)
-                                    { 
-                                        
-                                        cellAvg += new_vertices[index(_z, _y, _x, size)]; 
-                                        cellularCount++; 
-                                    } 
-                                else // if the cell is on the edge, add the noise threshold
-                                if (x == 0 && _x == -1 || 
-                                    y == 0 && _y == -1 || 
-                                    z == 0 && _z == -1 || 
-                                    _x == size || _y == size || _z == size) 
-                                    { cellAvg += noiseThreshold; } 
+                                int indexer = (rangerZ * size + rangerY) * size + rangerX;
+
+                                if(rangerX >= 0 && rangerX < size && rangerY >= 0 && rangerY < size && rangerZ >= 0 && rangerZ < size)
+                                    { cellAvg += new_vertices[indexer]; cellularCount++; } 
+                                else if (currentX == 0 && rangerX == -1 || currentY == 0 && rangerY == -1 || currentZ == 0 && rangerZ == -1 || 
+                                        rangerX == size || rangerY == size || rangerZ == size) 
+                                    { cellAvg += noiseThreshold; }
                             }
                     }
             }
@@ -126,121 +106,15 @@ float ChunkGenerator::Cellular(int z, int y, int x)
         return cellAvg;
    }
 
-// turn my cube into a binary index
-int ChunkGenerator::Cube2Bin(int z, int y, int x)
-    {
-        int _binary_value = 0;
-        
-        _binary_value |= (new_vertices[index(z, y, x, size)] < (fillCutOff ? 1 : 0) << 0);              // lower left back
-        _binary_value |= (new_vertices[index(z, y, x + 1, size)] < (fillCutOff ? 1 : 0) << 1);          // lower right back
-        _binary_value |= (new_vertices[index(z + 1, y, x + 1, size)] < (fillCutOff ? 1 : 0) << 2);      // lower right front
-        _binary_value |= (new_vertices[index(z + 1, y, x, size)] < (fillCutOff ? 1 : 0) << 3);          // lower left front
-        _binary_value |= (new_vertices[index(z, y + 1, x, size)] < (fillCutOff ? 1 : 0) << 4);          // upper left back
-        _binary_value |= (new_vertices[index(z, y + 1, x + 1, size)] < (fillCutOff ? 1 : 0) << 5);      // upper right back
-        _binary_value |= (new_vertices[index(z + 1, y + 1, x + 1, size)] < (fillCutOff ? 1 : 0) << 6);  // upper right front
-        _binary_value |= (new_vertices[index(z + 1, y + 1, x, size)] < (fillCutOff ? 1 : 0) << 7);      // upper left front
-
-        return _binary_value;
-    }
-
- // Finds the midpoint between two vertex locations.
-static inline int Isovert(float V) { return ((V + (V + 1)) / 2); }
-
- // Creates Vertex and Index listing simultaneously.
-void ChunkGenerator::GenVertexData(int bIndex, float locZ, float locY, float locX)
-    {
-        int _idx = 0;
-        int _vec_idx = 0;
-        std::vector<float> _vertices;
-
-        while (indexTable[bIndex][_idx] != -1)
-            {
-                switch (indexTable[bIndex][_idx])
-                    {
-                        case 0:  // // find the isoverts between 0 and 1
-                            _vertices.push_back(Isovert(locX));
-                            _vertices.push_back(locY);
-                            _vertices.push_back(locZ);
-                            break;
-                        case 1: // // find the isoverts between 1 and 2
-                            _vertices.push_back(locX + 1);
-                            _vertices.push_back(locY);
-                            _vertices.push_back(Isovert(locZ));
-                            break;
-                        case 2: // // find the isoverts between 2 and 3
-                            _vertices.push_back(Isovert(locX));
-                            _vertices.push_back(locY);
-                            _vertices.push_back(locZ + 1);
-                            break;
-                        case 3: // // find the isoverts between 3 and 0 
-                            _vertices.push_back(locX);
-                            _vertices.push_back(locY);
-                            _vertices.push_back(Isovert(locZ));
-                            break;
-                        case 4: // // find the isoverts between 4 and 5
-                            _vertices.push_back(Isovert(locX));
-                            _vertices.push_back(locY + 1);
-                            _vertices.push_back(locZ);
-                            break;
-                        case 5: // // find the isoverts between 5 and 6
-                            _vertices.push_back(locX + 1);
-                            _vertices.push_back(locY + 1);
-                            _vertices.push_back(Isovert(locZ));
-                            break;
-                        case 6: // // find the isoverts between 6 and 7
-                            _vertices.push_back(Isovert(locX));
-                            _vertices.push_back(locY + 1); 
-                            _vertices.push_back(locZ + 1);
-                            break;
-                        case 7: // // find the isoverts between 7 and 4
-                            _vertices.push_back(locX);
-                            _vertices.push_back(locY + 1);
-                            _vertices.push_back(Isovert(locZ));
-                            break;
-                        case 8: // // find the isoverts between 0 and 4
-                            _vertices.push_back(locX);
-                            _vertices.push_back(Isovert(locY));
-                            _vertices.push_back(locZ);
-                            break;
-                        case 9: // // find the isoverts between 1 and 5
-                            _vertices.push_back(locX + 1);
-                            _vertices.push_back(Isovert(locY));
-                            _vertices.push_back(locZ);
-                            break;
-                        case 10: // // find the isoverts between 2 and 6
-                            _vertices.push_back(locX + 1);
-                            _vertices.push_back(Isovert(locY));
-                            _vertices.push_back(locZ + 1);
-                            break;
-                        case 11: // // find the isoverts between 0 and 7
-                            _vertices.push_back(locX);
-                            _vertices.push_back(Isovert(locY));
-                            _vertices.push_back(locZ + 1);
-                            break;
-                    }
-
-                auto it = std::find(vertices.begin(), vertices.end(), _vertices);
-                if(it == vertices.end())
-                    {
-                        _vec_idx = vertices.size();
-                        vertices.push_back(_vertices);
-                        chunkData->indices.push_back(_vec_idx);
-                    }
-                else
-                    { chunkData->indices.push_back(it - vertices.begin()); }
-
-                _vertices.clear();
-                _idx++;
-            }
-    }
-
 // iterating vertices, creates isovertex positions
 // finds the binary value of a cube, and assigns vertexes to indices.
 void ChunkGenerator::March()
     {
         int binaryFun = 0;
-        
-        for(int z = 0; z < size - 1; z+=2) 
+        chunkData->indices.clear();
+        std::vector<std::vector<float>> *vertexData = new std::vector<std::vector<float>>;
+
+        for(int z = 0; z < size - 1; z+=2)
             {
                 for(int y = 0; y < size - 1; y+=2)
                     {
@@ -253,25 +127,134 @@ void ChunkGenerator::March()
                             }
                       }
             }
+
+        PopulateVertices();
+        CalculateNormals();
+    }
+
+static inline int index(int z, int y, int x, int size) { return (z * size + y) * size + x; }
+
+// turn my cube into a binary index
+int ChunkGenerator::Cube2Bin(int locZ, int locY, int locX)
+    {
+        int binaryVal = 0;
+        binaryVal += new_vertices[index(locZ, locY, locX, size)] < fillCutOff ? 1 : 0;
+        binaryVal += (2 * new_vertices[index(locZ, locY, locX + 1, size)] < fillCutOff ? 1 : 0);
+        binaryVal += (4 * new_vertices[index(locZ, locY + 1, locX + 1, size)] < fillCutOff ? 1 : 0);
+        binaryVal += (8 * new_vertices[index(locZ, locY + 1, locX, size)] < fillCutOff ? 1 : 0);
+        binaryVal += (16 * new_vertices[index(locZ + 1, locY, locX, size)] < fillCutOff ? 1 : 0);
+        binaryVal += (32 * new_vertices[index(locZ + 1, locY, locX + 1, size)] < fillCutOff ? 1 : 0);
+        binaryVal += (64 * new_vertices[index(locZ + 1, locY + 1, locX + 1, size)] < fillCutOff ? 1 : 0);
+        binaryVal += (128 * new_vertices[index(locZ + 1, locY + 1, locX, size)] < fillCutOff ? 1 : 0);
+        return binaryVal;
+    }
+
+
+ // Finds the midpoint between two vertex locations.
+static inline int Isovert(float V) { return ((V + (V + 1)) / 2); }
+
+ // Creates Vertex and Index listing simultaneously.
+void ChunkGenerator::GenVertexData(int bIndex, float locZ, float locY, float locX)
+    {
+        std::vector<float> *tempVecs = new std::vector<float>;
+        int indexCount = 0;
+        int vectorIndex = 0;
+
+        while (indexTable[bIndex][indexCount] != -1)
+            {
+                switch(indexTable[bIndex][indexCount])
+                    {
+                        case 0:  // // find the isoverts between 0 and 1
+                            tempVecs->push_back(Isovert(locX));
+                            tempVecs->push_back(locY);
+                            tempVecs->push_back(locZ);
+                            break;
+                        case 1: // // find the isoverts between 1 and 2
+                            tempVecs->push_back(locX + 1);
+                            tempVecs->push_back(locY);
+                            tempVecs->push_back(Isovert(locZ));
+                            break;
+                        case 2: // // find the isoverts between 2 and 3
+                            tempVecs->push_back(Isovert(locX));
+                            tempVecs->push_back(locY);
+                            tempVecs->push_back(locZ + 1);
+                            break;
+                        case 3: // // find the isoverts between 3 and 0 
+                            tempVecs->push_back(locX);
+                            tempVecs->push_back(locY);
+                            tempVecs->push_back(Isovert(locZ));
+                            break;
+                        case 4: // // find the isoverts between 4 and 5
+                            tempVecs->push_back(Isovert(locX));
+                            tempVecs->push_back(locY + 1);
+                            tempVecs->push_back(locZ);
+                            break;
+                        case 5: // // find the isoverts between 5 and 6
+                            tempVecs->push_back(locX + 1);
+                            tempVecs->push_back(locY + 1);
+                            tempVecs->push_back(Isovert(locZ));
+                            break;
+                        case 6: // // find the isoverts between 6 and 7
+                            tempVecs->push_back(Isovert(locX));
+                            tempVecs->push_back(locY + 1); 
+                            tempVecs->push_back(locZ + 1);
+                            break;
+                        case 7: // // find the isoverts between 7 and 4
+                            tempVecs->push_back(locX);
+                            tempVecs->push_back(locY + 1);
+                            tempVecs->push_back(Isovert(locZ));
+                            break;
+                        case 8: // // find the isoverts between 0 and 4
+                            tempVecs->push_back(locX);
+                            tempVecs->push_back(Isovert(locY));
+                            tempVecs->push_back(locZ);
+                            break;
+                        case 9: // // find the isoverts between 1 and 5
+                            tempVecs->push_back(locX + 1);
+                            tempVecs->push_back(Isovert(locY));
+                            tempVecs->push_back(locZ);
+                            break;
+                        case 10: // // find the isoverts between 2 and 6
+                            tempVecs->push_back(locX + 1);
+                            tempVecs->push_back(Isovert(locY));
+                            tempVecs->push_back(locZ + 1);
+                            break;
+                        case 11: // // find the isoverts between 0 and 7
+                            tempVecs->push_back(locX);
+                            tempVecs->push_back(Isovert(locY));
+                            tempVecs->push_back(locZ + 1);
+                            break;
+                    }
+
+                auto vectIt = std::find(vertices.begin(), vertices.end(), *tempVecs);                 // find the calculated vertex
+                if (vectIt != vertices.end())                                                           // if it's in the list
+                    {                                                    
+                      vectorIndex = std::distance(vertices.begin(), vectIt);                                // get the index
+                      chunkData->indices.push_back(vectorIndex);                                              // add it to the indices list
+                    } 
+                else if (vectIt == vertices.end()) 
+                    {                                                                                         // if it's not in the list
+                      vertices.push_back(*tempVecs);                                                        // add it to the vertex list
+                      auto vectIt = std::find(vertices.begin(), vertices.end(), *tempVecs);               // find the vertex
+                      vectorIndex = std::distance(vertices.begin(), vectIt);                                // get the index
+                      chunkData->indices.push_back(static_cast<unsigned int>(vectorIndex));                   // add it to the indices list
+                    }
+
+                tempVecs->clear();
+                indexCount++;
+            }
+
+        delete tempVecs;
     }
 
  // Populates Vertex Coords and Color vectors.
 void ChunkGenerator::PopulateVertices()
     {
-        Logger::Verbose("Populating Vertices:\n");
-        Logger::Verbose("Vertices: %d\n", vertices.size());
+        //printf("Populating Vertices\n");
         chunkData->vertices.clear();
-        chunkData->colors.clear();
 
-        if (vertices.size() == 0)
-            { return; }
-
-        // I'm pretty sure we can just make the new_vertices vector the vertices vector and skip this step
         for(int i = 0; i < vertices.size(); i++)
             {
-                if (vertices[i].size() == 0)
-                    { continue; }
-
                 float colorvar = (float)(rand() % 33);
 
                 if( colorvar < 16.5 )
@@ -287,18 +270,15 @@ void ChunkGenerator::PopulateVertices()
                 chunkData->colors.push_back(vertices[i][1] / (size + 10) * colorvar);
                 chunkData->colors.push_back(colorvar / (vertices[i][1] + 0.2f));
             }
+
+        //deduplicateVertices();
     }
 
  // Finds the coordinates of vertices based on index, and calculates normal directions.
 void ChunkGenerator::CalculateNormals()
     {
-        Logger::Verbose("Calculating Normals:\n");
-        Logger::Verbose("Vertices: %d\n", vertices.size());
-        Logger::Verbose("Indices: %d\n", chunkData->indices.size());
+        //printf("Calculating Normals\n");
         chunkData->normals.clear();
-
-        if (vertices.size() == 0 || chunkData->indices.size() == 0)
-            { return; }
 
         // Initialize normals for each vertex to zero
         std::vector<glm::vec3> normals(vertices.size(), glm::vec3(0.0f));
@@ -306,36 +286,24 @@ void ChunkGenerator::CalculateNormals()
         // Calculate normals for each triangle and add them to corresponding vertices
         for (int i = 0; i < chunkData->indices.size(); i += 3) 
             {
-                if (i + 2 >= chunkData->indices.size()) // Prevent out of bounds if the number of indices is not a multiple of 3
-                    { break; }
+                std::vector<float> p1 = vertices[chunkData->indices[i]];
+                std::vector<float> p2 = vertices[chunkData->indices[i + 1]];
+                std::vector<float> p3 = vertices[chunkData->indices[i + 2]];
 
-                // Retrieve vertices for the current triangle
-                int index1 = chunkData->indices[i];
-                int index2 = chunkData->indices[i + 1];
-                int index3 = chunkData->indices[i + 2];
+                glm::vec3 v1 = glm::vec3(p1[0], p1[1], p1[2]);
+                glm::vec3 v2 = glm::vec3(p2[0], p2[1], p2[2]);
+                glm::vec3 v3 = glm::vec3(p3[0], p3[1], p3[2]);
 
-                // Check if indices are within bounds
-                if (index1 < 0 || index1 >= vertices.size() ||
-                    index2 < 0 || index2 >= vertices.size() ||
-                    index3 < 0 || index3 >= vertices.size()) 
-                    {
-                        printf("Yo!! Index is out of bounds!");
-                        printf("We have a problem: %d, %d, %d\n", index1, index2, index3);
-                        printf("Indices: %d\n", chunkData->indices.size());
-                        printf("Vertices: %d\n", vertices.size());
-                        continue; // Skip if any index is out of bounds
-                    }
+                glm::vec3 edge1 = v2 - v1;
+                glm::vec3 edge2 = v3 - v1;
 
-                // Retrieve vertices for the current triangle
-                const std::vector<float>& v0 = vertices[index1];
-                const std::vector<float>& v1 = vertices[index2];
-                const std::vector<float>& v2 = vertices[index3];
+                // Calculate the face normal
+                glm::vec3 faceNormal = glm::cross(edge1, edge2);
 
-                glm::vec3 normal = glm::cross(glm::vec3(v1[0] - v0[0], v1[1] - v0[1], v1[2] - v0[2]), glm::vec3(v2[0] - v0[0], v2[1] - v0[1], v2[2] - v0[2]));
-
-                normals[index1] += normal;
-                normals[index2] += normal;
-                normals[index3] += normal;
+                // Add the face normal to each vertex of the triangle
+                normals[chunkData->indices[i]] += faceNormal;
+                normals[chunkData->indices[i + 1]] += faceNormal;
+                normals[chunkData->indices[i + 2]] += faceNormal;
             }
 
         // Normalize the normals
@@ -346,6 +314,31 @@ void ChunkGenerator::CalculateNormals()
                 chunkData->normals.push_back(normal.y);
                 chunkData->normals.push_back(normal.z);
             }
-
-        Logger::Verbose("Normals: %d\n", chunkData->normals.size());
     }
+/*
+void ChunkGenerator::deduplicateVertices()
+    {
+        std::vector<float> newVertices;
+        std::vector<float> newColors;
+
+        std::map<std::vector<float>, unsigned int> vertexMap;
+        std::map<std::vector<float>, unsigned int> colorMap;
+
+        for (int i = 0; i < chunkData->vertices.size(); i += 3) 
+            {
+                std::vector<float> vertex = {chunkData->vertices[i], chunkData->vertices[i + 1], chunkData->vertices[i + 2]};
+                std::vector<float> color = {chunkData->colors[i], chunkData->colors[i + 1], chunkData->colors[i + 2]};
+
+                if (vertexMap.find(vertex) == vertexMap.end()) 
+                    {
+                      vertexMap[vertex] = newVertices.size() / 3;
+                      colorMap[vertex] = newColors.size() / 3;
+                      newVertices.insert(newVertices.end(), vertex.begin(), vertex.end());
+                      newColors.insert(newColors.end(), color.begin(), color.end());
+                    }
+            }
+
+        chunkData->vertices = newVertices;
+        chunkData->colors = newColors;
+    }
+    */
