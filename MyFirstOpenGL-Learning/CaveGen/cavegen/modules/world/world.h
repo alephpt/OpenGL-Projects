@@ -17,7 +17,7 @@ class World{
         glm::ivec3 offset;
         FillMode fillMode = FillMode::Edges;
         ChunkConfig config = ChunkConfig(fillMode);
-        int chunkSize = 30;
+        int chunkSize = 15;
         int area = 1;
 
         void UpdateChunks(glm::vec3&);

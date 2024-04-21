@@ -3,10 +3,8 @@
 
 int main()
     {
-//        CaveGeneration cavegen;
-//        cavegen.render();
-
-        Chunk* chunk = ChunkGenerator::Generate(glm::ivec3(0, 0, 0), 0, ChunkConfig(FillMode::Edges));
+        CaveGeneration cavegen;
+        cavegen.render();
 
         return 0;
     }

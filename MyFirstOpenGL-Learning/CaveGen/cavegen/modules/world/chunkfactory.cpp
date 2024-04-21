@@ -19,9 +19,7 @@ static unsigned int getRandomSeed()
     }
 
 // Creates Map Segments
-ChunkGenerator::ChunkGenerator(){ 
-    chunkData = new Chunk; 
-}
+ChunkGenerator::ChunkGenerator(){ chunkData = new Chunk(); }
 ChunkGenerator::~ChunkGenerator(){ delete chunkData; }
 
 // Generates weighted noise, averages values and populates vertices based

@@ -129,6 +129,7 @@ void CaveGeneration::render()
                         // get a list of the delete chunks buffers and delete them
                         for (auto& chunk : world.delete_chunks)
                             {
+                                printf("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
                                 if (chunk_buffers.find(chunk) != chunk_buffers.end())
                                     { 
                                         unsigned int buffer = chunk_buffers[chunk];
@@ -140,6 +141,7 @@ void CaveGeneration::render()
 
                         for (auto& chunk : world.new_chunks)
                             { 
+                                printf("New Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
                                 if (chunk_buffers.find(chunk) == chunk_buffers.end())
                                     {
                                         unsigned int buffer = 0;

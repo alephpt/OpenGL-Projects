@@ -66,6 +66,7 @@ void CaveGeneration::imgui(bool show_window)
                 if(ImGui::Button("Solid"))
                     {
                         world.fillMode = FillMode::Solid;
+                        world.config = ChunkConfig(world.fillMode);
                         world.visible_chunks.clear();
                     }
 
@@ -73,6 +74,7 @@ void CaveGeneration::imgui(bool show_window)
                 if(ImGui::Button("Edges"))
                     {
                         world.fillMode = FillMode::Edges;
+                        world.config = ChunkConfig(world.fillMode);
                         world.visible_chunks.clear();
                     }
 
@@ -80,6 +82,7 @@ void CaveGeneration::imgui(bool show_window)
                 if(ImGui::Button("Tunnels"))
                     {
                         world.fillMode = FillMode::Tunnels;
+                        world.config = ChunkConfig(world.fillMode);
                         world.visible_chunks.clear();
                     }
 
@@ -87,6 +90,7 @@ void CaveGeneration::imgui(bool show_window)
                 if(ImGui::Button("Cells"))
                     {
                         world.fillMode = FillMode::Cells;
+                        world.config = ChunkConfig(world.fillMode);
                         world.visible_chunks.clear();
                     }
 
