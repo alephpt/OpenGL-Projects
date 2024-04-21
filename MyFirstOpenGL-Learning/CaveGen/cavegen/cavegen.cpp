@@ -30,7 +30,7 @@ bool CaveGeneration::initGLFW()
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        this->window = glfwCreateWindow(screenWidth, screenHeight, "Cave Generation", NULL, NULL);
+        window = glfwCreateWindow(screenWidth, screenHeight, "Cave Generation", NULL, NULL);
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1);
 
@@ -101,7 +101,7 @@ static inline void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void CaveGeneration::updateWorld()
     {
         // Update the world chunks
-        this->world.UpdateChunks(CaveGeneration::camera.location);
+        world.UpdateChunks(CaveGeneration::camera.location);
         
         // If the map table size changes, reinitialize the object buffer
         if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
@@ -137,7 +137,7 @@ void CaveGeneration::updateWorld()
                 world.delete_chunks.clear();
             }
 
-        for (auto& chunk : this->world.MapTable)
+        for (auto& chunk : world.MapTable)
             {
                 glBindVertexArray(chunk_buffers[chunk.first]);
                 glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
@@ -150,7 +150,7 @@ void CaveGeneration::render()
     {
         bool show_window = true;
 
-        while(!glfwWindowShouldClose(this->window) && !camera.killapp)
+        while(!glfwWindowShouldClose(window) && !camera.killapp)
             {
 
                 // clear screen data
@@ -178,7 +178,7 @@ void CaveGeneration::render()
                 MVP();
                 
                 imgui(show_window);
-                glfwSwapBuffers(this->window);
+                glfwSwapBuffers(window);
             }
 
         cleanUp();
