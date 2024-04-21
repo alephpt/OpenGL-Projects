@@ -25,5 +25,4 @@ struct Chunk{
 };
 
 void OffloadChunk(std::pair<const glm::ivec3, Chunk>*, const char*);
-Chunk* LoadChunk(glm::ivec3, const char*);
-
+bool LoadChunk(Chunk*, const char*, glm::ivec3);

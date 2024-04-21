@@ -21,12 +21,11 @@ class World{
         int area = 1;
 
         void UpdateChunks(glm::vec3&);
+        void reset();
+
+        std::set<glm::ivec3, Vec3Compare> new_chunks;
+        std::set<glm::ivec3, Vec3Compare> delete_chunks;
         std::set<glm::ivec3, Vec3Compare> visible_chunks;
         glm::ivec3 lastChunk;
-
-    private: 
-        int visibleChunks;
-        const int maxFOV = 60;
-        std::set<glm::ivec3, Vec3Compare> created_chunks;
 };
 

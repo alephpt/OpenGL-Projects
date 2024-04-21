@@ -2,18 +2,20 @@
 #include "./world.h"
 #include "./chunkfactory.h"
 
+#include <algorithm>
+#include "world.h"
+
 // Need to seperate World and Chunk classes
 World::World()
     { 
-        visibleChunks = maxFOV / chunkSize;
         lastChunk = glm::ivec3(0, 0, 0);
         MapTable.clear();
-        created_chunks.clear();
+        new_chunks.clear();
+        delete_chunks.clear();
         visible_chunks.clear();
         
         printf("Creating World\n");
         printf("Chunk Size: %d\n", chunkSize);
-        printf("Visible Chunks: %d\n", visibleChunks);
         return ; 
     }
 
@@ -30,9 +32,6 @@ World::~World()
                 it->second.normals.clear();
                 it->second.indices.clear();
 
-                if (created_chunks.find(it->first) != created_chunks.end()) 
-                    { created_chunks.erase(it->first); }
-
                 if (visible_chunks.find(it->first) != visible_chunks.end()) 
                     { visible_chunks.erase(it->first); }
 
@@ -41,6 +40,7 @@ World::~World()
     }
 
 
+// TODO: Improve this to only show +/-1 chunk from the current direction and +1 chunk further away
 void World::UpdateChunks(glm::vec3 &playerLoc) 
     {
         if (fillMode != FillMode::Custom) 
@@ -53,7 +53,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
             static_cast<int>(playerLoc.z / chunkSize)
         );
 
-        // TODO: Improve this to only show +/-1 chunk from the current direction and +1 chunk further away
+        std::set<glm::ivec3, Vec3Compare> previous_chunks = visible_chunks;
 
         // Check if player has moved to a new chunk
         if (currentChunk != lastChunk) 
@@ -61,6 +61,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                 // Update visible chunks
                 visible_chunks.clear();
 
+                // Create a new set of visible chunks
                 for (int x = 1 - area; x <= 1 + area; x++)                   // -1 is left
                     {
                         for (int y = 0 - area; y <= 0 + area; y++)            // -1 is up
@@ -77,54 +78,48 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                                     }
                             }
                     }
-                printf("Visible Chunks: %d\n", visible_chunks.size());
                 
+                // the new chunks are the chunks in in the visible_chunks set that are not in the previous_chunks set
+                std::set_difference(visible_chunks.begin(), visible_chunks.end(), previous_chunks.begin(), previous_chunks.end(), std::inserter(new_chunks, new_chunks.begin()), Vec3Compare());
+
+                // the delete chunks are the chunks in the previous_chunks set that are not in the visible_chunks set
+                std::set_difference(previous_chunks.begin(), previous_chunks.end(), visible_chunks.begin(), visible_chunks.end(), std::inserter(delete_chunks, delete_chunks.begin()), Vec3Compare());
+
                 const char* type = FILL_MODE_STR(fillMode);
 
                 // Remove chunks that are no longer visible
-                auto it = MapTable.begin();
-                while (it != MapTable.end()) 
+                for (auto it = delete_chunks.begin(); it != delete_chunks.end(); it++) 
                     {
-                        if (visible_chunks.find(it->first) == visible_chunks.end()) 
-                            {
-                                glm::ivec3 chunk = it->first;
-                                printf("Removing Chunk: %d, %d, %d\n", chunk.x, chunk.y, chunk.z);
-                                OffloadChunk(&*it, type);
-                                it = MapTable.erase(it);
-                            } 
-                        else 
-                            { ++it; }
+                        printf("Deleting %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
+                        OffloadChunk(&*MapTable.find(*it), type);
+                        MapTable.erase(*it);
                     }
-
-                printf("Visible Chunks: %d\n", visible_chunks.size());
 
                 // Update created chunks and load new chunks
-                for (auto it = visible_chunks.begin(); it != visible_chunks.end(); it++) 
+                for (auto it = new_chunks.begin(); it != new_chunks.end(); it++)
                     {
-                        if (MapTable.find(*it) == MapTable.end()) 
-                            {
-                                printf("Sourcing %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
-                                Chunk* MapChunk = LoadChunk(*it, type);
+                        Chunk* MapChunk = new Chunk();
 
-                                if (MapChunk->vertices.size() == 0)
-                                    {
-                                        printf("\t .. Generating New Chunk: %d, %d, %d\n", it->x, it->y, it->z);
-                                        glm::ivec3 offset = *it * chunkSize;
-                                        MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
-                                        MapTable[*it] = *MapChunk;
-                                        created_chunks.insert(*it);
-                                    } 
-                                else 
-                                    { 
-                                        printf("\t .. Chunk %d, %d, %d Loaded.\n", it->x, it->y, it->z);
-                                        MapTable[*it] = *MapChunk; 
-                                        delete MapChunk;
-                                    }
+                        if (!LoadChunk(MapChunk, type, *it))
+                            {
+                                printf("\t .. Generating New Chunk: %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
+                                glm::ivec3 offset = *it * chunkSize;
+                                MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
+                                MapTable[*it] = *MapChunk;
                             }
-                    }
+
+                        delete MapChunk;
+                    }                                  
 
                 printf("Visible Chunks: %d\n", visible_chunks.size());
                 // Update last chunk
                 lastChunk = currentChunk;
             }
+    }
+    
+void World::reset()
+    {
+        MapTable.clear();  
+        delete_chunks = visible_chunks;
+        visible_chunks.clear();
     }

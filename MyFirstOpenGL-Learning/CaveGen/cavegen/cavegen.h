@@ -26,8 +26,8 @@ class CaveGeneration {
     private:
         World world;
         GLFWwindow* window;
-        std::vector<unsigned int> VAOs;
         std::set<glm::ivec3, Vec3Compare> current_chunks;
+        std::map<glm::ivec3, unsigned int, Vec3Compare> chunk_buffers;
         unsigned int shader;
         bool show_window = true;
 
