@@ -4,14 +4,16 @@
 #include <cstdio>
 #include <iostream>
 
-void Logger::SetLevel(DebugLevel level)
+DebugLevel Logger::level = DebugLevel::Info;
+
+void Logger::SetLevel(DebugLevel set_level)
     {
-        Logger::level = level;
+        level = set_level;
     }
 
 void Logger::Error(const char *message, ...)
     {
-        if (Logger::level < DebugLevel::Error) { return; }
+        if (level < DebugLevel::Error) { return; }
 
         va_list args;
         va_start(args, message);
@@ -22,7 +24,7 @@ void Logger::Error(const char *message, ...)
 
 void Logger::Warning(const char *message, ...)
     {
-        if (Logger::level < DebugLevel::Warning) { return; }
+        if (level < DebugLevel::Warning) { return; }
 
         va_list args;
         va_start(args, message);
@@ -33,7 +35,7 @@ void Logger::Warning(const char *message, ...)
 
 void Logger::Info(const char *message, ...)
     {
-        if (Logger::level < DebugLevel::Info) { return; }
+        if (level < DebugLevel::Info) { return; }
 
         va_list args;
         va_start(args, message);
@@ -44,7 +46,7 @@ void Logger::Info(const char *message, ...)
 
 void Logger::Debug(const char *message, ...)
     {
-        if (Logger::level < DebugLevel::Debug) { return; }
+        if (level < DebugLevel::Debug) { return; }
 
         va_list args;
         va_start(args, message);
@@ -55,7 +57,7 @@ void Logger::Debug(const char *message, ...)
 
 void Logger::Verbose(const char *message, ...)
     {
-        if (Logger::level < DebugLevel::Verbose) { return; }
+        if (level < DebugLevel::Verbose) { return; }
 
         va_list args;
         va_start(args, message);

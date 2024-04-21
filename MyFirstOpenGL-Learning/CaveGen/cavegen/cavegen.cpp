@@ -105,7 +105,7 @@ void CaveGeneration::updateWorld()
 
                 for (auto& chunk : world.new_chunks)
                     { 
-                        printf("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
+                        Logger::Debug("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
 
                         unsigned int buffer = 0;
                         glGenVertexArrays(1, &buffer);
@@ -117,7 +117,7 @@ void CaveGeneration::updateWorld()
                 // get a list of the delete chunks buffers and delete them
                 for (auto& chunk : world.delete_chunks)
                     {
-                        printf("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
+                        Logger::Debug("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
                         if (chunk_buffers.find(chunk) != chunk_buffers.end())
                             { 
                                 unsigned int buffer = chunk_buffers[chunk];

@@ -2,7 +2,7 @@
 
 #include "modules/world/world.h"
 #include "modules/gui/camera.h"
-#include "utility/logger.h"
+#include "components/utility/logger.h"
 
 #include <vector>
 #include <set>
@@ -16,7 +16,7 @@ class CaveGeneration {
 
         const int screenHeight = 720;
         const int screenWidth = 1260;
-        const DebugLevel debugLevel = DebugLevel::Info;
+        const DebugLevel debugLevel = DebugLevel::Verbose;
 
         bool initGLFW();
         bool initBuffers();

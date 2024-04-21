@@ -1,6 +1,7 @@
 #include "chunkfactory.h"
 
 #include "../../components/marching.h"
+#include "../../components/utility/logger.h"
 
 #include <algorithm>
 #include <map>
@@ -125,27 +126,6 @@ float ChunkGenerator::Cellular(int z, int y, int x)
         return cellAvg;
    }
 
-// iterating vertices, creates isovertex positions
-// finds the binary value of a cube, and assigns vertexes to indices.
-void ChunkGenerator::March()
-    {
-        int binaryFun = 0;
-        
-        for(int z = 0; z < size - 1; z+=2) 
-            {
-                for(int y = 0; y < size - 1; y+=2)
-                    {
-                        for(int x = 0; x < size - 1; x+=2)
-                            {
-                                binaryFun = Cube2Bin(z,y,x); // finds binary value of a cube
-
-                                if(binaryFun != 0 && binaryFun != 255)
-                                    { GenVertexData(binaryFun, (float)z, (float)y, (float)x); }
-                            }
-                      }
-            }
-    }
-
 // turn my cube into a binary index
 int ChunkGenerator::Cube2Bin(int z, int y, int x)
     {
@@ -254,10 +234,32 @@ void ChunkGenerator::GenVertexData(int bIndex, float locZ, float locY, float loc
             }
     }
 
+// iterating vertices, creates isovertex positions
+// finds the binary value of a cube, and assigns vertexes to indices.
+void ChunkGenerator::March()
+    {
+        int binaryFun = 0;
+        
+        for(int z = 0; z < size - 1; z+=2) 
+            {
+                for(int y = 0; y < size - 1; y+=2)
+                    {
+                        for(int x = 0; x < size - 1; x+=2)
+                            {
+                                binaryFun = Cube2Bin(z,y,x); // finds binary value of a cube
+
+                                if(binaryFun != 0 && binaryFun != 255)
+                                    { GenVertexData(binaryFun, (float)z, (float)y, (float)x); }
+                            }
+                      }
+            }
+    }
+
  // Populates Vertex Coords and Color vectors.
 void ChunkGenerator::PopulateVertices()
     {
-        printf("Populating Vertices\n");
+        Logger::Verbose("Populating Vertices:\n");
+        Logger::Verbose("Vertices: %d\n", vertices.size());
         chunkData->vertices.clear();
         chunkData->colors.clear();
 
@@ -290,7 +292,9 @@ void ChunkGenerator::PopulateVertices()
  // Finds the coordinates of vertices based on index, and calculates normal directions.
 void ChunkGenerator::CalculateNormals()
     {
-        printf("Calculating Normals\n");
+        Logger::Verbose("Calculating Normals:\n");
+        Logger::Verbose("Vertices: %d\n", vertices.size());
+        Logger::Verbose("Indices: %d\n", chunkData->indices.size());
         chunkData->normals.clear();
 
         if (vertices.size() == 0 || chunkData->indices.size() == 0)
@@ -342,4 +346,6 @@ void ChunkGenerator::CalculateNormals()
                 chunkData->normals.push_back(normal.y);
                 chunkData->normals.push_back(normal.z);
             }
+
+        Logger::Verbose("Normals: %d\n", chunkData->normals.size());
     }
