@@ -58,7 +58,9 @@ void CaveGeneration::imgui(bool show_window)
                 ImGui::SliderInt(" - Visible Area", &world.area, 0, 5);
 
                 if(ImGui::Button("Regen"))
-                    { world.visible_chunks.clear(); }
+                    { 
+                        world.reset();
+                    }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Solid"))

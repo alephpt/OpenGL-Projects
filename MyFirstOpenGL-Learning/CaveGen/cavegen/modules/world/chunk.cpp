@@ -174,6 +174,7 @@ void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
         std::ostringstream oss;
         oss << "/home/persist/mine/repos/map_chunks/" << type << "_" << chunk->first.x << chunk->first.y << chunk->first.z << ".chunk";
         std::string filename = oss.str();
+        printf("Offloading Chunk to File: %s\n", filename.c_str());
         std::ofstream ofs(filename, std::ios::binary);
 
         if (!ofs) 
@@ -183,19 +184,20 @@ void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
         ofs.close();
     }
 
-Chunk* LoadChunk(glm::ivec3 chunk, const char* type) 
+bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk) 
     {
         // Check if file exists
         std::ostringstream oss;
         oss << "/home/persist/mine/repos/map_chunks/" << type << "_" << chunk.x << chunk.y << chunk.z << ".chunk";
         std::string filename = oss.str();
 
+        printf("Loading Chunk from File: %s\n", filename.c_str());
         if (access(filename.c_str(), F_OK) == -1) 
-            { std::cerr << " [LoadChunk]: File does not exist: " << filename << std::endl; return new Chunk(); }
+            { std::cerr << " [LoadChunk]: File does not exist: " << filename << std::endl; return false; }
 
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs) 
-            { std::cerr << " [LoadChunk]: Failed to open file: " << filename << std::endl; return new Chunk(); }
+            { std::cerr << " [LoadChunk]: Failed to open file: " << filename << std::endl; return false; }
 
         // deserialize data from file
         std::string serializedData;
@@ -205,10 +207,9 @@ Chunk* LoadChunk(glm::ivec3 chunk, const char* type)
         serializedData.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
         // Deserialize data to Chunk object
-        Chunk* MapChunk = Chunk::Deserialize(serializedData);
-
+        MapChunk = Chunk::Deserialize(serializedData);
         ifs.close();
-        return MapChunk;
+        return true;
     }
 
 void Chunk::log() const

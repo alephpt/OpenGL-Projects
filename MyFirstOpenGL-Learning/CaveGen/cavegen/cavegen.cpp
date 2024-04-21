@@ -46,11 +46,14 @@ bool CaveGeneration::initBuffers()
 
         // buffer data
         shader = ShaderData();
-        VAOs.resize(world.MapTable.size());
-        int VAO_index = 0;
 
         for (auto& chunk : world.MapTable)
-            { bindObjectBuffer(VAOs[VAO_index++], chunk.second); }
+            {
+                unsigned int buffer = 0;
+                glGenVertexArrays(1, &buffer);
+                chunk_buffers[chunk.first] = buffer;
+                bindObjectBuffer(buffer, chunk.second);
+            }
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_DITHER);
@@ -119,31 +122,39 @@ void CaveGeneration::render()
                 // imgui instance and object buffer
                 imgui(show_window);
 
+                // TODO: we can abstract and combine this logic with out UPDATECHUNKS function
                 // If the map table size changes, reinitialize the object buffer
-                int VAO_index = 0;
-                if (current_chunks != world.visible_chunks)
+                if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
                     {
                         printf("Map Table Size Changed\n");
 
-                        for (auto& arrayObject : VAOs)
-                            { glDeleteVertexArrays(1, &arrayObject); }
+                        // get a list of the delete chunks buffers and delete them
+                        for (auto& chunk : world.delete_chunks)
+                            {
+                                if (chunk_buffers.find(chunk) != chunk_buffers.end())
+                                    { 
+                                        unsigned int buffer = chunk_buffers[chunk];
+                                        glDeleteVertexArrays(1, &buffer);
+                                        chunk_buffers.erase(chunk);
+                                    }
+                            }
 
-                        VAOs.clear();
-                        VAOs.resize(world.MapTable.size());
-                        VAO_index = 0;
 
-
-                        for (auto& chunk : world.MapTable)
-                            { bindObjectBuffer(VAOs[VAO_index++], chunk.second); }
-
-                        current_chunks = world.visible_chunks;
-                        printf("New Map Table Size: %i\n", current_chunks.size());
+                        for (auto& chunk : world.new_chunks)
+                            { 
+                                if (chunk_buffers.find(chunk) == chunk_buffers.end())
+                                    {
+                                        unsigned int buffer = 0;
+                                        glGenVertexArrays(1, &buffer);
+                                        chunk_buffers[chunk] = buffer;
+                                        bindObjectBuffer(buffer, world.MapTable[chunk]);
+                                    }
+                            }
                     }
 
-                VAO_index = 0;
                 for (auto& chunk : world.MapTable)
                     {
-                        glBindVertexArray(VAOs[VAO_index++]);
+                        glBindVertexArray(chunk_buffers[chunk.first]);
                         glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
                     }
                 
@@ -184,8 +195,8 @@ inline void CaveGeneration::cleanUp()
     {
         imguiDestroy();
 
-        for (auto& arrayObject : VAOs)
-            { glDeleteVertexArrays(1, &arrayObject); }
+        for (auto& buffer : chunk_buffers)
+            { glDeleteVertexArrays(1, &buffer.second); }
 
         glDeleteProgram(shader);
         glfwTerminate();
