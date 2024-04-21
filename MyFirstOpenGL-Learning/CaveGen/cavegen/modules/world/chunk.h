@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../atomic.h"
+#include "atomic.h"
 
 #include <vector>
 #include <string>

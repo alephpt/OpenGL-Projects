@@ -1,4 +1,4 @@
-#include "./chunk.h"
+#include "chunk.h"
 
 #include <sstream>
 #include <string.h>
@@ -183,14 +183,14 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
         oss << "/home/persist/mine/repos/map_chunks/" << type << "_" << chunk.x << chunk.y << chunk.z << ".chunk";
         std::string filename = oss.str();
 
-        printf("Loading Chunk from File: %s\n", filename.c_str());
         if (access(filename.c_str(), F_OK) == -1) 
-            { std::cerr << " [LoadChunk]: File does not exist: " << filename << std::endl; return false; }
+            { std::cerr << "\t [LoadChunk]: File does not exist: " << filename << std::endl; return false; }
 
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs) 
-            { std::cerr << " [LoadChunk]: Failed to open file: " << filename << std::endl; return false; }
+            { std::cerr << "\t [LoadChunk]: Failed to open file: " << filename << std::endl; return false; }
 
+        printf("\t [LoadChunk]: Loading Chunk from File: %s\n", filename.c_str());
         // deserialize data from file
         std::string serializedData;
         ifs.seekg(0, std::ios::end);
