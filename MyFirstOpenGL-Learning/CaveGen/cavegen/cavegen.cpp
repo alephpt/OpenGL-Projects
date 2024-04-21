@@ -1,7 +1,6 @@
-#include "./cavegen.h"
-#include "./modules/gui/gl.h"
-#include "./modules/gui/shader.h"
 #include "cavegen.h"
+#include "modules/gui/gl.h"
+#include "modules/gui/shader.h"
 
 // static camera object
 Camera CaveGeneration::camera = Camera();
