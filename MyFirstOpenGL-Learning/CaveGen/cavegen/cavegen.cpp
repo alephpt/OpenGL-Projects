@@ -166,7 +166,7 @@ void CaveGeneration::render()
 
                 MVP();
 
-                //imgui(show_window);
+                imgui(show_window);
                 glfwSwapBuffers(window);
             }
 
