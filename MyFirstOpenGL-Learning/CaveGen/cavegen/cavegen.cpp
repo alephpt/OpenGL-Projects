@@ -6,9 +6,13 @@
 // static camera object
 Camera CaveGeneration::camera = Camera();
 
+// initialize glDebugMessageCallback
+
+
 CaveGeneration::CaveGeneration()
     {
         Logger::SetLevel(debugLevel);
+        //glDebugMessageCallback(gl_error_callback, 0);
 
         if (!initGLFW())
             { throw std::runtime_error("Failed to initialize GLFW"); }
@@ -106,13 +110,13 @@ void CaveGeneration::updateWorld()
                 for (auto& chunk : world.new_chunks)
                     { 
                         Logger::Debug("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
+                        unsigned int* buffer = new unsigned int;
 
-                        unsigned int buffer = 0;
+                        glGenVertexArrays(1, buffer);
+                        bindObjectBuffer(*buffer, world.MapTable[chunk], shader);
 
-                        glGenVertexArrays(1, &buffer);
-                        chunk_buffers[chunk] = buffer;
-
-                        bindObjectBuffer(buffer, world.MapTable[chunk], shader);
+                        chunk_buffers[chunk] = *buffer;
+                        delete buffer;
                     }
                 world.new_chunks.clear();
                 
@@ -133,7 +137,7 @@ void CaveGeneration::updateWorld()
                 world.delete_chunks.clear();
             }
 
-        for (auto& chunk : world.MapTable)
+        for (auto& chunk : this->world.MapTable)
             {
                 printf("Binding and Drawing Chunk: %d %d %d\n", chunk.first.x, chunk.first.y, chunk.first.z);
                 glBindVertexArray(chunk_buffers[chunk.first]);
