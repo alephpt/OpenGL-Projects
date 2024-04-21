@@ -278,19 +278,25 @@ void ChunkGenerator::Colorize()
  // Finds the coordinates of vertices based on index, and calculates normal directions.
 void ChunkGenerator::Normalize()
     {
-        Logger::Verbose("Calculating Normals:\n");
-        Logger::Verbose("Vertices: %d\n", positions.size());
-
-        // // Calculate normals for each triangle and add them to corresponding vertices
-        for(int i = 0; i < indices.size(); i += 3)
+        // Calculate normals for each triangle and add them to corresponding vertices
+        for (int i = 0; i < indices.size(); i += 3) 
             {
-                glm::vec3 _v1 = positions[indices[i + 1]] - positions[indices[i]];
-                glm::vec3 _v2 = positions[indices[i + 2]] - positions[indices[i]];
-                glm::vec3 _normal = glm::normalize(glm::cross(_v1, _v2));
+                glm::vec3 p1 = positions[indices[i]];
+                glm::vec3 p2 = positions[indices[i + 1]];
+                glm::vec3 p3 = positions[indices[i + 2]];
 
-                normals.push_back(_normal);
-                normals.push_back(_normal);
-                normals.push_back(_normal);
+                // Calculate the edges of the triangle
+                glm::vec3 edge1 = p2 - p1;
+                glm::vec3 edge2 = p3 - p1;
+
+                // Calculate the face normal
+                glm::vec3 faceNormal = glm::cross(edge1, edge2);
+                glm::normalize(faceNormal);
+
+                // Add the face normal to each vertex normal
+                normals.push_back(faceNormal);
+                normals.push_back(faceNormal);
+                normals.push_back(faceNormal);
             }
     }
 
@@ -305,4 +311,6 @@ void ChunkGenerator::constructChunk()
         
         // Add indices to chunk
         chunkData->indices = indices;
+
+        chunkData->log();
     }

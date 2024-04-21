@@ -20,10 +20,91 @@ void CaveGeneration:: imgui(bool show_window)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        int top_window_height = 0;
+
+        if (show_window)
+            {
+                // Box Logic
+                int chunkCount = world.MapTable.size();
+                int vertexCount = 0;
+                int indexCount = 0;
+
+                for (auto& chunk : world.MapTable)
+                    {
+                        vertexCount += chunk.second.vertices.size();
+                        indexCount += chunk.second.indices.size();
+                    }
+
+                int triangleCount = indexCount / 3;
+
+                // Box Format
+                ImGui::Begin("Data", &show_window);
+                ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetWindowWidth() - 10, 10));
+                top_window_height = ImGui::GetWindowHeight();
+                // Align text to the right
+                ImGui::Separator();
+                // Make Font Bold
+                ImGui::Text("World Data"); 
+                ImGui::SameLine();
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::CalcTextSize("0.00f ms/frame (000.0f FPS)").x - 10);
+                ImGui::Text("%.2f ms/frame (%.1f FPS)\n", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                ImGui::Separator();
+                ImGui::Columns(2, "worlddata");
+                ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * .38);
+                ImGui::SetColumnWidth(1, ImGui::GetWindowWidth() * .62);
+                ImGui::Text("Total Chunks"); ImGui::NextColumn(); 
+                // Align text to the right
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75);
+                ImGui::Text("%i", chunkCount); ImGui::NextColumn();
+
+                ImGui::Text("Total Vertices"); ImGui::NextColumn(); 
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75 - 5);
+                ImGui::Text("%i", vertexCount); ImGui::NextColumn();
+
+                ImGui::Text("Total Indices"); ImGui::NextColumn(); 
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75 - 5);
+                ImGui::Text("%i", indexCount); ImGui::NextColumn();
+
+                ImGui::Text("Total Triangles"); ImGui::NextColumn(); 
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75 - 5);
+                ImGui::Text("%i", triangleCount); ImGui::NextColumn();
+                ImGui::Columns(1);
+
+                ImGui::Separator();
+                ImGui::NewLine();
+                ImGui::Separator();
+
+                ImGui::Columns(4, "userdata");
+
+                ImGui::Text("Cordinate"); ImGui::NextColumn(); 
+                ImGui::Text("X"); ImGui::NextColumn(); ImGui::Text("Y"); ImGui::NextColumn(); ImGui::Text("Z"); ImGui::NextColumn();
+                ImGui::Separator();
+                                
+                ImGui::Text("Grid Position"); ImGui::NextColumn();
+                ImGui::Text("%i", world.lastChunk.x); ImGui::NextColumn();
+                ImGui::Text("%i", world.lastChunk.y); ImGui::NextColumn();
+                ImGui::Text("%i", world.lastChunk.z); ImGui::NextColumn();
+
+                ImGui::Text("Location"); ImGui::NextColumn();
+                ImGui::Text("%.2f", camera.location.x); ImGui::NextColumn();
+                ImGui::Text("%.2f", camera.location.y); ImGui::NextColumn();
+                ImGui::Text("%.2f", camera.location.z); ImGui::NextColumn();
+
+                ImGui::Text("Direction"); ImGui::NextColumn();
+                ImGui::Text("%.2f", camera.direction.x); ImGui::NextColumn();
+                ImGui::Text("%.2f", camera.direction.y); ImGui::NextColumn();
+                ImGui::Text("%.2f", camera.direction.z); ImGui::NextColumn();
+                ImGui::Columns(1);
+
+                ImGui::Separator();
+                ImGui::End();
+            }
+
           // imGui context
         if (show_window)
             {
                 ImGui::Begin("Controls", &show_window);
+                ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetWindowWidth() - 10, top_window_height + 20));
                 ImGui::Text("Menu:");
                 
                 if(ImGui::Button("Camera Controls") && camera.freeMouse)
@@ -77,29 +158,6 @@ void CaveGeneration:: imgui(bool show_window)
                 if(ImGui::Button("Cells"))
                     { world.tunnelFill(); }
 
-                ImGui::End();
-            }
-
-        if (show_window)
-            {
-                ImGui::Begin("Data", &show_window);
-                ImGui::Text("Application average %.2f ms/frame (%.1f FPS)\n", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-                int vertexCount = 0;
-                int triangleCount = 0;
-
-                for (auto& chunk : world.MapTable)
-                    {
-                      vertexCount += chunk.second.vertices.size();
-                      triangleCount += chunk.second.indices.size();
-                    }
-                    
-                ImGui::Text("Vertex Count : %i - Triangles : %i \n" , vertexCount, triangleCount);
-                ImGui::Text("   Cordinate     X       Y       Z");
-                ImGui::Text(" - Grid Pos  -    %i    %i    %i", world.currentChunk[0], world.currentChunk[1], world.currentChunk[2]);
-                ImGui::Text(" - Chunk Pos -    %i    %i    %i", world.lastChunk[0], world.lastChunk[1], world.lastChunk[2]);
-                ImGui::Text(" - Location  -    %.2f    %.2f    %.2f", camera.location.x, camera.location.y, camera.location.z);
-                ImGui::Text(" - Direction -    %.2f    %.2f    %.2f\n", camera.direction.x, camera.direction.y, camera.direction.z);
-                
                 ImGui::End();
             }
 
