@@ -29,8 +29,6 @@ World::~World()
 
                 // delete chunk data
                 it->second.vertices.clear();
-                it->second.colors.clear();
-                it->second.normals.clear();
                 it->second.indices.clear();
 
                 if (visible_chunks.find(it->first) != visible_chunks.end()) 

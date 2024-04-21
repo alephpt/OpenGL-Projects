@@ -4,7 +4,7 @@
 #include <string.h>
 
 // Implement Serialize and Deserialize for Chunk
-inline std::string Chunk::Serialize() const 
+/*inline std::string Chunk::Serialize() const 
     {
         std::stringstream ss;
         ss << "{";
@@ -159,7 +159,7 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
         // Return deserialized Chunk
         return data;
     }
-
+*/
 void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
     {
         // Offload chunk data to disk
@@ -172,7 +172,7 @@ void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
         if (!ofs) 
             { std::cerr << " [OffloadChunk]: Failed to Offload Chunk to File: " << filename << std::endl; return; }
 
-        ofs << chunk->second.Serialize().c_str();
+        //ofs << chunk->second.Serialize().c_str();
         ofs.close();
     }
 
@@ -199,7 +199,10 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
         serializedData.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
         // Deserialize data to Chunk object
-        MapChunk = Chunk::Deserialize(serializedData);
+        //MapChunk = Chunk::Deserialize(serializedData);
+        return false;
+
+        // TODO: Fix Format of Serialized Data
         ifs.close();
         return true;
     }
@@ -207,8 +210,6 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
 void Chunk::log() const
     {
         printf("Vertices: %d\n", vertices.size());
-        printf("Colors: %d\n", colors.size());
-        printf("Normals: %d\n", normals.size());
         printf("Indices: %d\n", indices.size());
         printf("Offset: %d, %d, %d\n", offset.x, offset.y, offset.z);
     }

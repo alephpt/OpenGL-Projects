@@ -54,7 +54,7 @@ bool CaveGeneration::initBuffers()
                 unsigned int buffer = 0;
                 glGenVertexArrays(1, &buffer);
                 chunk_buffers[chunk.first] = buffer;
-                bindObjectBuffer(buffer, chunk.second);
+                bindObjectBuffer(buffer, chunk.second, shader);
             }
 
         glEnable(GL_DEPTH_TEST);
@@ -108,9 +108,11 @@ void CaveGeneration::updateWorld()
                         Logger::Debug("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
 
                         unsigned int buffer = 0;
+
                         glGenVertexArrays(1, &buffer);
                         chunk_buffers[chunk] = buffer;
-                        bindObjectBuffer(buffer, world.MapTable[chunk]);
+
+                        bindObjectBuffer(buffer, world.MapTable[chunk], shader);
                     }
                 world.new_chunks.clear();
                 
@@ -121,7 +123,10 @@ void CaveGeneration::updateWorld()
                         if (chunk_buffers.find(chunk) != chunk_buffers.end())
                             { 
                                 unsigned int buffer = chunk_buffers[chunk];
+
                                 glDeleteVertexArrays(1, &buffer);
+                                glDeleteBuffers(1, &buffer);
+
                                 chunk_buffers.erase(chunk);
                             }                               
                     }
@@ -133,6 +138,8 @@ void CaveGeneration::updateWorld()
                 glBindVertexArray(chunk_buffers[chunk.first]);
                 glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
             }
+
+        return;
     }
 
 void CaveGeneration::render()
@@ -141,12 +148,13 @@ void CaveGeneration::render()
 
         while(!glfwWindowShouldClose(window) && !camera.killapp)
             {
+
                 // clear screen data
                 glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-                // load input data
                 glUseProgram(shader);
+
+                glfwPollEvents();
 
                 // check for mouse input
                 if (!camera.freeMouse)
@@ -161,11 +169,10 @@ void CaveGeneration::render()
                         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                     }
 
-                glfwPollEvents();
                 updateWorld();
 
                 MVP();
-
+                
                 imgui(show_window);
                 glfwSwapBuffers(window);
             }
@@ -199,7 +206,10 @@ inline void CaveGeneration::cleanUp()
         imguiDestroy();
 
         for (auto& buffer : chunk_buffers)
-            { glDeleteVertexArrays(1, &buffer.second); }
+            { 
+                glDeleteVertexArrays(1, &buffer.second); 
+                glDeleteBuffers(1, &buffer.second);
+            }
 
         glDeleteProgram(shader);
         glfwTerminate();
