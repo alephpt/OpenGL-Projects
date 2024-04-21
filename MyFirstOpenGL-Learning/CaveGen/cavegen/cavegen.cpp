@@ -126,8 +126,6 @@ void CaveGeneration::render()
                 // If the map table size changes, reinitialize the object buffer
                 if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
                     {
-                        printf("Map Table Size Changed\n");
-
                         // get a list of the delete chunks buffers and delete them
                         for (auto& chunk : world.delete_chunks)
                             {
@@ -136,9 +134,9 @@ void CaveGeneration::render()
                                         unsigned int buffer = chunk_buffers[chunk];
                                         glDeleteVertexArrays(1, &buffer);
                                         chunk_buffers.erase(chunk);
-                                    }
+                                    }                               
                             }
-
+                        world.delete_chunks.clear();
 
                         for (auto& chunk : world.new_chunks)
                             { 
@@ -150,6 +148,7 @@ void CaveGeneration::render()
                                         bindObjectBuffer(buffer, world.MapTable[chunk]);
                                     }
                             }
+                        world.new_chunks.clear();
                     }
 
                 for (auto& chunk : world.MapTable)
