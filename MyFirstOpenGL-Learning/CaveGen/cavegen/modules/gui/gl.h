@@ -21,12 +21,10 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 static inline void bindObjectBuffer(unsigned int &arrayObject, Chunk &MapChunk, unsigned int shader)
     {
-        printf(" - Binding Object Buffer\n");
-        printf(" - VAO: %d\n", arrayObject);
+        Logger::Verbose(" - Binding Object Buffer - VAO: %d\n", arrayObject);
         //MapChunk.log();
         unsigned int EBO, VBO;
 
-        printf("Binding Vertex and Index Array\n");
         glGenVertexArrays(1, &arrayObject);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
