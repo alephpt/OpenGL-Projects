@@ -19,7 +19,5 @@ class Logger{
         static void Warning(const char* message, ...);
         static void Error(const char* message, ...);
         static void SetLevel(DebugLevel);
-
-    private:
         static DebugLevel level;  
 };
