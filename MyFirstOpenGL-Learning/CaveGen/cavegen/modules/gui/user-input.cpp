@@ -52,7 +52,7 @@ void CaveGeneration::userInput()
                 CaveGeneration::camera.location.x -= directxe;
             }
 
-        if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
             { CaveGeneration::camera.location.y -= CaveGeneration::camera.speed * 0.635f; }
 
         if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)

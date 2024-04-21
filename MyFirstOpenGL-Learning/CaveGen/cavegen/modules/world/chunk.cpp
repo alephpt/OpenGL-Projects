@@ -85,8 +85,6 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
             }
 
         // Parsing "colors"
-        if (!(ss >> token && token == "],")) 
-            { printf("[DESERIALIZE]::ERROR - vertices Expected ']' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "\"colors\":"))
             { printf("[DESERIALIZE]::ERROR - Expected 'colors' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 
@@ -103,8 +101,6 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
             }
 
         // Parsing "normals"
-        if (!(ss >> token && token == "],")) 
-            { printf("[DESERIALIZE]::ERROR - colors Expected ']' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "\"normals\":"))
             { printf("[DESERIALIZE]::ERROR - Expected 'normals' - Received Token: %s\n", token.c_str()); return data; }
 
@@ -122,8 +118,6 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
             }
 
         // Parsing "indices"
-        if (!(ss >> token && token == "],")) 
-            { printf("[DESERIALIZE]::ERROR - normals Expected ']' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "\"indices\":")) 
             { printf("[DESERIALIZE]::ERROR - Expected 'indices' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 
@@ -141,8 +135,6 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
             }
 
         // Parsing "offset"
-        if (!(ss >> token && token == "],")) 
-            { printf("[DESERIALIZE]::ERROR - indices Expected ']' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "\"offset\":")) 
             { printf("[DESERIALIZE]::ERROR - Expected 'offset' - Received Token: %s\n", token.c_str()); return data; }
         if (!(ss >> token && token == "[")) 

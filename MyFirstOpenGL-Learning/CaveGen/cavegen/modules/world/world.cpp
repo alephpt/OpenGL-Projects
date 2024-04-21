@@ -90,6 +90,8 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                 // Remove chunks that are no longer visible
                 for (auto it = delete_chunks.begin(); it != delete_chunks.end(); it++) 
                     {
+                        if (MapTable.find(*it) == MapTable.end()) { continue; }
+                        
                         printf("Deleting %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
                         OffloadChunk(&*MapTable.find(*it), type);
                         MapTable.erase(*it);
@@ -102,7 +104,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
 
                         if (!LoadChunk(MapChunk, type, *it))
                             {
-                                printf("\t .. Generating New Chunk: %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
+                                printf("\t Generating New Chunk: %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
                                 glm::ivec3 offset = *it * chunkSize;
                                 MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
                                 MapTable[*it] = *MapChunk;
