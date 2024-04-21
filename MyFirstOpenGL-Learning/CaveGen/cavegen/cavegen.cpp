@@ -109,7 +109,7 @@ void CaveGeneration::updateWorld()
 
                 for (auto& chunk : world.new_chunks)
                     { 
-                        Logger::Debug("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
+                        Logger::Verbose("New Chunk: %i %i %i ", chunk.x, chunk.y, chunk.z);
                         unsigned int* buffer = new unsigned int;
 
                         glGenVertexArrays(1, buffer);
@@ -123,13 +123,13 @@ void CaveGeneration::updateWorld()
                 // get a list of the delete chunks buffers and delete them
                 for (auto& chunk : world.delete_chunks)
                     {
-                        Logger::Debug("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
+                        Logger::Verbose("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
                         if (chunk_buffers.find(chunk) != chunk_buffers.end())
                             { 
                                 unsigned int buffer = chunk_buffers[chunk];
 
-                                glDeleteVertexArrays(1, &buffer);
                                 glDeleteBuffers(1, &buffer);
+                                glDeleteVertexArrays(1, &buffer);
 
                                 chunk_buffers.erase(chunk);
                             }                               
@@ -139,7 +139,6 @@ void CaveGeneration::updateWorld()
 
         for (auto& chunk : this->world.MapTable)
             {
-                printf("Binding and Drawing Chunk: %d %d %d\n", chunk.first.x, chunk.first.y, chunk.first.z);
                 glBindVertexArray(chunk_buffers[chunk.first]);
                 glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
             }
