@@ -1,21 +1,23 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <cmath>
 #include "resources/object.h"
 #include "resources/character.h"
 #include "resources/shader.h"
 #include "resources/logic.h"
 
-struct dimensions{
-const int width = 1260;
-const int height = 720;} screen;
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <cmath>
+
+
+std::string shader_path = "/home/persist/z/Ancillary/Big Stick Studios/repos/learning/Cpp/OpenGl/MyFirstOpenGL-Learning/asteroids/resources/base.shader";
+struct dimensions { const int width = 1260; const int height = 720; } screen;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height){
     glViewport(0, 0, width, height);
@@ -109,7 +111,7 @@ int main (){
   glBindVertexArray(0);
 
   // shader data
-  ShaderSource source = parseShader("resources/base.shader");
+  ShaderSource source = parseShader(shader_path);
   unsigned int shader = createShader(source.VertexSource, source.FragmentSource, program);
   unsigned int cubeshader = createShader(source.VertexSource, source.FragmentSource, cubeprogram);
   unsigned int bulletshader = createShader(source.VertexSource, source.FragmentSource, bulletprogram);
