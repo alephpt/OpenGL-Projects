@@ -16,16 +16,20 @@ class ChunkGenerator{
 		Chunk* chunkData;
 
 		int size;
-		std::vector<float> new_vertices;
-		std::vector<std::vector<float>> vertices;
+		std::vector<float> noise;
+		std::vector<glm::vec3> positions;
+		std::vector<glm::vec3> colors;
+		std::vector<glm::vec3> normals;
+		std::vector<unsigned int> indices;
 
 		void NoiseGeneration();									// Generates grid of random numbers
-		void Smoother();										// Cellular Automata
+		void Automata();										// Cellular Automata
 		float Cellular(int, int, int);							// Finds the value of neighboring vertices
 		void March();											// Creates Mesh Data
 		int Cube2Bin(int, int, int); 							// Returns a binary representation of a cube
 		int EvaluateVertex(int, int, int);  					// Returns 1 or 0 depending on the cutoff value of a vertex
 		void GenVertexData(int, float, float, float); 	        // Creates vertex and index information
-		void PopulateVertices();								// Orders vertices and color vectors
-		void CalculateNormals();							    // Calculates normal data
+		void Colorize();										// Orders vertices and color vectors
+		void Normalize();							    		// Calculates normal data
+		void constructChunk();									// Constructs the chunk data with the generated data
 };
