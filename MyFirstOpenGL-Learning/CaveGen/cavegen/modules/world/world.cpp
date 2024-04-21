@@ -9,10 +9,11 @@
 World::World()
     { 
         lastChunk = glm::ivec3(0, 0, 0);
+        currentChunk = lastChunk;
         MapTable.clear();
         new_chunks.clear();
         delete_chunks.clear();
-        visible_chunks.clear();
+        visible_chunks.insert(lastChunk);
         
         printf("Creating World\n");
         printf("Chunk Size: %d\n", chunkSize);
@@ -43,9 +44,6 @@ World::~World()
 // TODO: Improve this to only show +/-1 chunk from the current direction and +1 chunk further away
 void World::UpdateChunks(glm::vec3 &playerLoc) 
     {
-        if (fillMode != FillMode::Custom) 
-            { config = ChunkConfig(fillMode); }
-
         // Calculate current chunk based on player's position
         glm::ivec3 currentChunk = glm::ivec3(
             static_cast<int>(playerLoc.x / chunkSize),
@@ -91,7 +89,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                 for (auto it = delete_chunks.begin(); it != delete_chunks.end(); it++) 
                     {
                         if (MapTable.find(*it) == MapTable.end()) { continue; }
-                        
+
                         printf("Deleting %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
                         OffloadChunk(&*MapTable.find(*it), type);
                         MapTable.erase(*it);
@@ -107,11 +105,13 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                                 printf("\t Generating New Chunk: %s_%d%d%d.chunk\n", type, it->x, it->y, it->z);
                                 glm::ivec3 offset = *it * chunkSize;
                                 MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
-                                MapTable[*it] = *MapChunk;
                             }
 
+                        MapTable.emplace(*it, *MapChunk);
                         delete MapChunk;
-                    }                                  
+                    }            
+
+                printf("\t MapTable Size: %d\n", MapTable.size());
 
                 printf("Visible Chunks: %d\n", visible_chunks.size());
                 // Update last chunk
@@ -124,4 +124,32 @@ void World::reset()
         MapTable.clear();  
         delete_chunks = visible_chunks;
         visible_chunks.clear();
+    }
+
+void World::solidFill()
+    {
+        fillMode = FillMode::Solid;
+        config = ChunkConfig(fillMode);
+        reset();
+    }
+
+void World::edgeFill()
+    {
+        fillMode = FillMode::Edges;
+        config = ChunkConfig(fillMode);
+        reset();
+    }
+
+void World::tunnelFill()
+    {
+        fillMode = FillMode::Tunnels;
+        config = ChunkConfig(fillMode);
+        reset();
+    }
+
+void World::cellFill()
+    {
+        fillMode = FillMode::Cells;
+        config = ChunkConfig(fillMode);
+        reset();
     }

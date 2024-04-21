@@ -29,13 +29,12 @@ class CaveGeneration {
         std::set<glm::ivec3, Vec3Compare> current_chunks;
         std::map<glm::ivec3, unsigned int, Vec3Compare> chunk_buffers;
         unsigned int shader;
-        bool show_window = true;
 
-        void userInput();
+        void playerControls();
         void MVP();
         void imguiInit();
         void imgui(bool);
-        void imguiRender();
         void imguiDestroy();
         void cleanUp();
+        void updateWorld();
 };

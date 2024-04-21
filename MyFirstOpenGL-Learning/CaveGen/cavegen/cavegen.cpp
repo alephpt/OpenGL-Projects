@@ -92,8 +92,54 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
         CaveGeneration::camera.front = glm::normalize(CaveGeneration::camera.direction);
     }
 
+void CaveGeneration::updateWorld()
+    {
+        // Update the world chunks
+        world.UpdateChunks(CaveGeneration::camera.location);
+        
+        // If the map table size changes, reinitialize the object buffer
+        if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
+            {
+
+                for (auto& chunk : world.new_chunks)
+                    { 
+                        printf("New Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
+
+                        if (chunk_buffers.find(chunk) == chunk_buffers.end())
+                            {
+                                unsigned int buffer = 0;
+                                glGenVertexArrays(1, &buffer);
+                                chunk_buffers[chunk] = buffer;
+                                bindObjectBuffer(buffer, world.MapTable[chunk]);
+                            }
+                    }
+                world.new_chunks.clear();
+                
+                // get a list of the delete chunks buffers and delete them
+                for (auto& chunk : world.delete_chunks)
+                    {
+                        printf("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
+                        if (chunk_buffers.find(chunk) != chunk_buffers.end())
+                            { 
+                                unsigned int buffer = chunk_buffers[chunk];
+                                glDeleteVertexArrays(1, &buffer);
+                                chunk_buffers.erase(chunk);
+                            }                               
+                    }
+                world.delete_chunks.clear();
+            }
+
+        for (auto& chunk : world.MapTable)
+            {
+                glBindVertexArray(chunk_buffers[chunk.first]);
+                glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
+            }
+    }
+
 void CaveGeneration::render()
     {
+        bool show_window = true;
+
         while(!glfwWindowShouldClose(window) && !camera.killapp)
             {
                 // clear screen data
@@ -103,68 +149,25 @@ void CaveGeneration::render()
                 // load input data
                 glUseProgram(shader);
 
-                // if mouse is free - kill callback - else disable cursor, log mouse and user input
-                if (camera.freeMouse) 
+                // check for mouse input
+                if (!camera.freeMouse)
+                    { 
+                        playerControls(); 
+                        glfwSetCursorPosCallback(window, mouseCallback);
+                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);    
+                    }
+                else 
                     {
                         glfwSetCursorPosCallback(window, NULL);
                         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                    } 
-                else if (!camera.freeMouse)
-                    {
-                        userInput();
-                        glfwSetCursorPosCallback(window, mouseCallback);
-                        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                     }
 
-                // initialize screen data handling
                 glfwPollEvents();
-                
-                // imgui instance and object buffer
-                imgui(show_window);
+                updateWorld();
 
-                // TODO: we can abstract and combine this logic with out UPDATECHUNKS function
-                // If the map table size changes, reinitialize the object buffer
-                if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
-                    {
-                        // get a list of the delete chunks buffers and delete them
-                        for (auto& chunk : world.delete_chunks)
-                            {
-                                printf("Delete Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
-                                if (chunk_buffers.find(chunk) != chunk_buffers.end())
-                                    { 
-                                        unsigned int buffer = chunk_buffers[chunk];
-                                        glDeleteVertexArrays(1, &buffer);
-                                        chunk_buffers.erase(chunk);
-                                    }                               
-                            }
-                        world.delete_chunks.clear();
-
-                        for (auto& chunk : world.new_chunks)
-                            { 
-                                printf("New Chunk: %i %i %i\n", chunk.x, chunk.y, chunk.z);
-                                if (chunk_buffers.find(chunk) == chunk_buffers.end())
-                                    {
-                                        unsigned int buffer = 0;
-                                        glGenVertexArrays(1, &buffer);
-                                        chunk_buffers[chunk] = buffer;
-                                        bindObjectBuffer(buffer, world.MapTable[chunk]);
-                                    }
-                            }
-                        world.new_chunks.clear();
-                    }
-
-                for (auto& chunk : world.MapTable)
-                    {
-                        glBindVertexArray(chunk_buffers[chunk.first]);
-                        glDrawElements(GL_TRIANGLES, chunk.second.indices.size(), GL_UNSIGNED_INT, 0);
-                    }
-                
-                // model - view - projection 
                 MVP();
-                
-                // refresh compute data
-                imguiRender();
 
+                //imgui(show_window);
                 glfwSwapBuffers(window);
             }
 

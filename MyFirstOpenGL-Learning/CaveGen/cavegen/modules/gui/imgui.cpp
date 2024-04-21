@@ -52,49 +52,30 @@ void CaveGeneration::imgui(bool show_window)
                     ImGui::SliderFloat(" - Fill Cutoff", &world.config.fillCutOff, 0.0f, 100.0f))
                     { 
                         world.fillMode = FillMode::Custom;
-                        world.visible_chunks.clear();
+                        world.reset();
                     }
 
                 ImGui::SliderInt(" - Visible Area", &world.area, 0, 5);
 
                 if(ImGui::Button("Regen"))
-                    { 
-                        world.reset();
-                    }
+                    { world.reset(); }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Solid"))
-                    {
-                        world.fillMode = FillMode::Solid;
-                        world.config = ChunkConfig(world.fillMode);
-                        world.visible_chunks.clear();
-                    }
+                    { world.solidFill(); }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Edges"))
-                    {
-                        world.fillMode = FillMode::Edges;
-                        world.config = ChunkConfig(world.fillMode);
-                        world.visible_chunks.clear();
-                    }
+                    { world.edgeFill(); }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Tunnels"))
-                    {
-                        world.fillMode = FillMode::Tunnels;
-                        world.config = ChunkConfig(world.fillMode);
-                        world.visible_chunks.clear();
+                    { world.tunnelFill();
                     }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Cells"))
-                    {
-                        world.fillMode = FillMode::Cells;
-                        world.config = ChunkConfig(world.fillMode);
-                        world.visible_chunks.clear();
-                    }
-
-                world.UpdateChunks(CaveGeneration::camera.location);
+                    { world.tunnelFill(); }
 
                 ImGui::End();
             }
@@ -121,13 +102,10 @@ void CaveGeneration::imgui(bool show_window)
                 
                 ImGui::End();
             }
-    };
 
-void CaveGeneration::imguiRender()
-    {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    }
+    };
 
 void CaveGeneration::imguiDestroy()
     {

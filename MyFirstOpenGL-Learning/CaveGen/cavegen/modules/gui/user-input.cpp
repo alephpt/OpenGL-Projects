@@ -1,10 +1,6 @@
 #include "../../cavegen.h"
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
-
-void CaveGeneration::userInput()
+void CaveGeneration::playerControls()
     {
         float directx = CaveGeneration::camera.speed * CaveGeneration::camera.direction.x;
         float directy = CaveGeneration::camera.speed * CaveGeneration::camera.direction.y;
@@ -18,12 +14,6 @@ void CaveGeneration::userInput()
                     { CaveGeneration::camera.killapp = true; }
                 else
                     { CaveGeneration::camera.freeMouse = true; }
-            }
-
-        if(glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
-            {
-                CaveGeneration::camera.freeMouse = true;
-                CaveGeneration::camera.newmouse = true;
             }
 
         if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)

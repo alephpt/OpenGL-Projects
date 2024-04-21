@@ -41,8 +41,8 @@ Chunk* ChunkGenerator::Generate(glm::ivec3 offset, int chunkSize, ChunkConfig co
         for (int smooth = 0; smooth < _chunk_t->howSmooth; smooth++)
             { _chunk_t->Smoother(); }
         
-        _chunk_t->March(offset);
-        _chunk_t->PopulateVertices(offset);
+        _chunk_t->March();
+        _chunk_t->PopulateVertices();
         _chunk_t->CalculateNormals();
 
         return _chunk_t->chunkData;
@@ -127,11 +127,11 @@ float ChunkGenerator::Cellular(int z, int y, int x)
 
 // iterating vertices, creates isovertex positions
 // finds the binary value of a cube, and assigns vertexes to indices.
-void ChunkGenerator::March(glm::ivec3 &offset)
+void ChunkGenerator::March()
     {
         int binaryFun = 0;
         
-        for(int z = 0; z < size - 1; z+=2)
+        for(int z = 0; z < size - 1; z+=2) 
             {
                 for(int y = 0; y < size - 1; y+=2)
                     {
@@ -255,7 +255,7 @@ void ChunkGenerator::GenVertexData(int bIndex, float locZ, float locY, float loc
     }
 
  // Populates Vertex Coords and Color vectors.
-void ChunkGenerator::PopulateVertices(glm::ivec3 &offset)
+void ChunkGenerator::PopulateVertices()
     {
         printf("Populating Vertices\n");
         chunkData->vertices.clear();
@@ -277,9 +277,9 @@ void ChunkGenerator::PopulateVertices(glm::ivec3 &offset)
                 else 
                     { colorvar = (colorvar / 100.0f) * 2.0f; }
 
-                chunkData->vertices.push_back(vertices[i][0] - offset.x);
-                chunkData->vertices.push_back(vertices[i][1] - offset.y);
-                chunkData->vertices.push_back(vertices[i][2] - offset.z);
+                chunkData->vertices.push_back(vertices[i][0] - chunkData->offset.x);
+                chunkData->vertices.push_back(vertices[i][1] - chunkData->offset.y);
+                chunkData->vertices.push_back(vertices[i][2] - chunkData->offset.z);
 
                 chunkData->colors.push_back(vertices[i][1] / size);
                 chunkData->colors.push_back(vertices[i][1] / (size + 10) * colorvar);
