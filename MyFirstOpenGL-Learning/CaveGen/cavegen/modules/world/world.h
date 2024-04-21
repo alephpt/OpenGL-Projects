@@ -9,23 +9,25 @@
 
 class World{
     public:
-        World();
-        ~World();
-
-        std::map<glm::ivec3, Chunk, Vec3Compare> MapTable;
-        glm::ivec3 currentChunk;
-        glm::ivec3 offset;
-        FillMode fillMode = FillMode::Edges;
-        ChunkConfig config = ChunkConfig(fillMode);
-        int chunkSize = 15;
         int area = 1;
-
-        void UpdateChunks(glm::vec3&);
-        void reset();
-
+        int chunkSize = 15;
+        ChunkConfig config = ChunkConfig(fillMode);
+        FillMode fillMode = FillMode::Edges;
+        glm::ivec3 lastChunk;
+        glm::ivec3 currentChunk;
         std::set<glm::ivec3, Vec3Compare> new_chunks;
         std::set<glm::ivec3, Vec3Compare> delete_chunks;
         std::set<glm::ivec3, Vec3Compare> visible_chunks;
-        glm::ivec3 lastChunk;
+        std::map<glm::ivec3, Chunk, Vec3Compare> MapTable;
+
+        World();
+        ~World();
+
+        void UpdateChunks(glm::vec3&);
+        void reset();
+        void solidFill();
+        void edgeFill();
+        void tunnelFill();
+        void cellFill();
 };
 
