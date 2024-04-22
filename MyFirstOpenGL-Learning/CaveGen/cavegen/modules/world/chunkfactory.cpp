@@ -43,7 +43,7 @@ Chunk* ChunkGenerator::Generate(glm::ivec3 offset, int chunkSize, ChunkConfig co
         
         for (int smooth = 0; smooth < _chunk_t->howSmooth; smooth++)
             { _chunk_t->Automata(); }
-        
+
         _chunk_t->March();
         _chunk_t->Colorize();
         _chunk_t->Normalize();
@@ -142,6 +142,40 @@ int ChunkGenerator::Cube2Bin(int z, int y, int x)
  // Finds the midpoint between two vertex locations.
 static inline int Isovert(float V) { return ((V + (V + 1)) / 2); }
 
+static inline glm::vec3 bIndex2Vertex(int index, float _z, float _y, float _x)
+    {
+        Logger::Verbose("findVertex() - Index: %d\n", index);
+        switch (index)
+            {
+                case 0:  // // find the isoverts between 0 and 1
+                    return {Isovert(_x), _y, _z};
+                case 1: // // find the isoverts between 1 and 2
+                    return {_x + 1, _y, Isovert(_z)};
+                case 2: // // find the isoverts between 2 and 3
+                    return {Isovert(_x), _y, _z + 1};
+                case 3: // // find the isoverts between 3 and 0
+                    return {_x, _y, Isovert(_z)};
+                case 4: // // find the isoverts between 4 and 5
+                    return {Isovert(_x), _y + 1, _z};
+                case 5: // // find the isoverts between 5 and 6
+                    return {_x + 1, _y + 1, Isovert(_z)};
+                case 6: // // find the isoverts between 6 and 7
+                    return {Isovert(_x), _y + 1, _z + 1};
+                case 7: // // find the isoverts between 7 and 4
+                    return {_x, _y + 1, Isovert(_z)};
+                case 8: // // find the isoverts between 0 and 4
+                    return {_x, Isovert(_y), _z};
+                case 9: // // find the isoverts between 1 and 5
+                    return {_x + 1, Isovert(_y), _z};
+                case 10: // // find the isoverts between 2 and 6
+                    return {_x + 1, Isovert(_y), _z + 1};
+                case 11: // // find the isoverts between 0 and 7
+                    return {_x, Isovert(_y), _z + 1};
+                default:
+                    return {-1, -1, -1};
+            }
+    }
+
  // Creates Vertex and Index listing simultaneously.
 void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
     {
@@ -150,71 +184,7 @@ void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
 
         while (indexTable[bIndex][_idx] != -1)
             {
-                glm::vec3 _vertices;
-                Logger::Verbose("Index: %d\n", indexTable[bIndex][_idx]);
-                switch (indexTable[bIndex][_idx])
-                    {
-                        case 0:  // // find the isoverts between 0 and 1
-                            _vertices.x = Isovert(_x);
-                            _vertices.y = _y;
-                            _vertices.z = _z;
-                            break;
-                        case 1: // // find the isoverts between 1 and 2
-                            _vertices.x = _x + 1;
-                            _vertices.y = _y;
-                            _vertices.z = Isovert(_z);
-                            break;
-                        case 2: // // find the isoverts between 2 and 3
-                            _vertices.x = Isovert(_x);
-                            _vertices.y = _y;
-                            _vertices.z = _z + 1;
-                            break;
-                        case 3: // // find the isoverts between 3 and 0 
-                            _vertices.x = _x;
-                            _vertices.y = _y;
-                            _vertices.z = Isovert(_z);
-                            break;
-                        case 4: // // find the isoverts between 4 and 5
-                            _vertices.x = Isovert(_x);
-                            _vertices.y = _y + 1;
-                            _vertices.z = _z;
-                            break;
-                        case 5: // // find the isoverts between 5 and 6
-                            _vertices.x = _x + 1;
-                            _vertices.y = _y + 1;
-                            _vertices.z = Isovert(_z);
-                            break;
-                        case 6: // // find the isoverts between 6 and 7
-                            _vertices.x = Isovert(_x);
-                            _vertices.y = _y + 1; 
-                            _vertices.z = _z + 1;
-                            break;
-                        case 7: // // find the isoverts between 7 and 4
-                            _vertices.x = _x;
-                            _vertices.y = _y + 1;
-                            _vertices.z = Isovert(_z);
-                            break;
-                        case 8: // // find the isoverts between 0 and 4
-                            _vertices.x = _x;
-                            _vertices.y = Isovert(_y);
-                            _vertices.z = _z;
-                            break;
-                        case 9: // // find the isoverts between 1 and 5
-                            _vertices.x = _x + 1;
-                            _vertices.y = Isovert(_y);
-                            _vertices.z = _z;
-                            break;
-                        case 10: // // find the isoverts between 2 and 6
-                            _vertices.x = _x + 1;
-                            _vertices.y = Isovert(_y);
-                            _vertices.z = _z + 1;
-                            break;
-                        case 11: // // find the isoverts between 0 and 7
-                            _vertices.x = _x;
-                            _vertices.y = Isovert(_y);
-                            _vertices.z = _z + 1;
-                            break;
-                    }
+                glm::vec3 _vertices = bIndex2Vertex(indexTable[bIndex][_idx], _z, _y, _x);
 
                 auto it = std::find(positions.begin(), positions.end(), _vertices);
                 if(it == positions.end())
@@ -239,11 +209,11 @@ void ChunkGenerator::March()
     {
         int binaryFun = 0;
         
-        for(int z = 0; z < size - 1; z+=2) 
+        for(int z = 0; z < size - 1; z++) 
             {
-                for(int y = 0; y < size - 1; y+=2)
+                for(int y = 0; y < size - 1; y++)
                     {
-                        for(int x = 0; x < size - 1; x+=2)
+                        for(int x = 0; x < size - 1; x++)
                             {
                                 binaryFun = Cube2Bin(z,y,x); // finds binary value of a cube
 
@@ -252,6 +222,26 @@ void ChunkGenerator::March()
                             }
                       }
             }
+
+        // Testing
+        // Hijackling March to test our indexTable
+        // for (int i = 1; i < 255; i++)
+        //     {
+        //         const int* _indices = indexTable[i];
+
+        //         int _vec_idx = 0;
+
+        //         while (_indices[_vec_idx] != -1) {
+        //             int x = i % 16;
+        //             int y = (i / 16) % 16;
+
+        //             glm::vec3 _vertices = bIndex2Vertex(_indices[_vec_idx], 0, y, x);
+
+        //             indices.push_back(positions.size());
+        //             positions.push_back(_vertices);
+        //             _vec_idx++;
+        //         }
+        //     }
     }
 
  // Populates Color vectors.
@@ -273,7 +263,7 @@ void ChunkGenerator::Colorize()
                 else 
                     { colorvar = (colorvar / 100.0f) * 2.0f; }
 
-                colors.push_back({(positions[i].y / size), positions[i].y / (size + 10) * colorvar, colorvar / (positions[i].y + 0.2f)});
+                colors.push_back({66, positions[i].y / (size + 10) * colorvar, colorvar / (positions[i].y + 0.2f)});
             }
     }
 
