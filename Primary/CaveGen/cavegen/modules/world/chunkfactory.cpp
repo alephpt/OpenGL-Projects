@@ -254,18 +254,23 @@ void ChunkGenerator::Colorize()
         if (positions.size() == 0)
             { return; }
 
-        // I'm pretty sure we can just make the new_vertices vector the vertices vector and skip this step
-        for(int i = 0; i < positions.size(); i++)
-            {
-                float colorvar = (float)(rand() % 33);
 
-                if( colorvar < 16.5 )
-                    { colorvar = colorvar / 100.0f; } 
-                else 
-                    { colorvar = (colorvar / 100.0f) * 2.0f; }
+        for(int i = 0; i < positions.size(); i++) {
+            float colorvar = (float)(rand() % 33);
 
-                colors.push_back({66, positions[i].y / (size + 10) * colorvar, colorvar / (positions[i].y + 0.2f)});
+            if (colorvar < 16.5) {
+                colorvar = colorvar / 100.0f;
+            } else {
+                colorvar = (colorvar / 100.0f) * 2.0f;
             }
+
+            // Pretty cloud colors
+            float red = 0.2f;
+            float green = 0.8f;
+            float blue = 1.0f;
+
+            colors.push_back({red, red + green * (positions[i].y / (size + 10) * colorvar), red + blue * (colorvar / (positions[i].y + 0.2f))});
+        }
     }
 
  // Finds the coordinates of vertices based on index, and calculates normal directions.

@@ -157,7 +157,7 @@ void CaveGeneration:: imgui(bool show_window)
 
                 ImGui::SameLine();
                 if(ImGui::Button("Cells"))
-                    { world.tunnelFill(); }
+                    { world.cellFill(); }
 
                 ImGui::End();
             }

@@ -76,7 +76,8 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                             }
                     }
                 
-                if (MapTable.size() == 0) { 
+                // For Debugging Purposes
+                //if (MapTable.size() == 0) { 
 
                 // the delete chunks are the chunks in the previous_chunks set that are not in the visible_chunks set
                 std::set_difference(previous_chunks.begin(), previous_chunks.end(), visible_chunks.begin(), visible_chunks.end(), std::inserter(delete_chunks, delete_chunks.begin()), Vec3Compare());
@@ -118,7 +119,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                 Logger::Verbose("\tNew Chunks: %d\n", new_chunks.size());
                 Logger::Verbose("\tDelete Chunks: %d\n\n", delete_chunks.size());
                 // Update last chunk
-                }
+                //}
 
                 lastChunk = currentChunk;
             }

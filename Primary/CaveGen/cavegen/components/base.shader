@@ -15,18 +15,18 @@ uniform mat4 projection;
 void main(){
     gl_Position = projection * view * model * vec4(aPos, 1.0);
     vecColor = vec4(aCol, 1.0);
-    vecNormal = vec4(aNorm, 1.0);
+    vecNormal = vec4(normalize(aNorm.xyz), 0.0);
 };
 
 #Shader Fragment
 #version 420 core
 
-out vec4 color;
 in vec4 vecColor;
 in vec4 vecNormal;
-uniform vec4 u_Color;
+
+out vec4 color;
 
 void main(){
-vec4 vectorize = vecNormal + vecColor + u_Color;
-color = vectorize;
+vec4 vectorize = vecNormal + vecColor;
+color = vecColor;
 };

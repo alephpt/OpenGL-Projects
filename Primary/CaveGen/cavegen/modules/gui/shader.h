@@ -12,7 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-std::string shader_path = "/home/persist/z/Ancillary/Big Stick Studios/repos/learning/Cpp/OpenGl/MyFirstOpenGL-Learning/CaveGen/cavegen/components/base.shader";
+std::string shader_path = "/home/persist/z/Ancillary/Big Stick Studios/repos/learning/Cpp/OpenGl/Primary/CaveGen/cavegen/components/base.shader";
 
 // used to store our shader source code
 struct ShaderSource {

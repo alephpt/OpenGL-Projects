@@ -9,9 +9,9 @@
 
 class World{
     public:
-        int area = 0;
-        int chunkSize = 30;
-        FillMode fillMode = FillMode::Solid;
+        int area = 1;
+        int chunkSize = 45;
+        FillMode fillMode = FillMode::Edges;
         ChunkConfig config = ChunkConfig(fillMode);
         glm::ivec3 lastChunk;
         glm::ivec3 currentChunk;
