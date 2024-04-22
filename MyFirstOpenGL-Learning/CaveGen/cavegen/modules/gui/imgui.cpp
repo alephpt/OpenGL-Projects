@@ -22,6 +22,7 @@ void CaveGeneration:: imgui(bool show_window)
 
         int top_window_height = 0;
 
+        // Data Status Box
         if (show_window)
             {
                 // Box Logic
@@ -54,19 +55,19 @@ void CaveGeneration:: imgui(bool show_window)
                 ImGui::SetColumnWidth(1, ImGui::GetWindowWidth() * .62);
                 ImGui::Text("Total Chunks"); ImGui::NextColumn(); 
                 // Align text to the right
-                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75);
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .68);
                 ImGui::Text("%i", chunkCount); ImGui::NextColumn();
 
                 ImGui::Text("Total Vertices"); ImGui::NextColumn(); 
-                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75 - 5);
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .68 - 5);
                 ImGui::Text("%i", vertexCount); ImGui::NextColumn();
 
                 ImGui::Text("Total Indices"); ImGui::NextColumn(); 
-                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75 - 5);
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .68 - 5);
                 ImGui::Text("%i", indexCount); ImGui::NextColumn();
 
                 ImGui::Text("Total Triangles"); ImGui::NextColumn(); 
-                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .75 - 5);
+                ImGui::SetCursorPosX(ImGui::GetWindowWidth() * .68 - 5);
                 ImGui::Text("%i", triangleCount); ImGui::NextColumn();
                 ImGui::Columns(1);
 
@@ -100,7 +101,7 @@ void CaveGeneration:: imgui(bool show_window)
                 ImGui::End();
             }
 
-          // imGui context
+        // User Controls Box
         if (show_window)
             {
                 ImGui::Begin("Controls", &show_window);

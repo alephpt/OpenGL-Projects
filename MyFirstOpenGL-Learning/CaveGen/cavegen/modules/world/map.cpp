@@ -1,6 +1,7 @@
 
 #include "map.h"
 #include "chunkfactory.h"
+#include "../../components/utility/logger.h"
 
 #include <algorithm>
 
@@ -100,7 +101,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
 
                         if (!LoadChunk(MapChunk, type, *it))
                             {
-                                printf("\t - Generating New %s Chunk %d %d %d\n", type, it->x, it->y, it->z);
+                                Logger::Verbose("\t - Generating New %s Chunk %d %d %d\n", type, it->x, it->y, it->z);
                                 glm::ivec3 offset = *it * chunkSize;
                                 MapChunk = ChunkGenerator::Generate(offset, chunkSize, config);
                                 MapChunk->log();
@@ -110,10 +111,10 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                         delete MapChunk;
                     }            
 
-                printf("\n\tMapTable Size: %d\n", MapTable.size());
-                printf("\tVisible Chunks: %d\n", visible_chunks.size());
-                printf("\tNew Chunks: %d\n", new_chunks.size());
-                printf("\tDelete Chunks: %d\n\n", delete_chunks.size());
+                Logger::Verbose("\n\tMapTable Size: %d\n", MapTable.size());
+                Logger::Verbose("\tVisible Chunks: %d\n", visible_chunks.size());
+                Logger::Verbose("\tNew Chunks: %d\n", new_chunks.size());
+                Logger::Verbose("\tDelete Chunks: %d\n\n", delete_chunks.size());
                 // Update last chunk
                 lastChunk = currentChunk;
             }

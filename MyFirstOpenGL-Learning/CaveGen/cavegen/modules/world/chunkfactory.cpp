@@ -285,18 +285,20 @@ void ChunkGenerator::Normalize()
                 glm::vec3 p2 = positions[indices[i + 1]];
                 glm::vec3 p3 = positions[indices[i + 2]];
 
+                Logger::Debug("P1: %f %f %f\n", p1.x, p1.y, p1.z);
+
                 // Calculate the edges of the triangle
                 glm::vec3 edge1 = p2 - p1;
                 glm::vec3 edge2 = p3 - p1;
 
                 // Calculate the face normal
                 glm::vec3 faceNormal = glm::cross(edge1, edge2);
-                glm::normalize(faceNormal);
+                glm::vec3 normalized = glm::normalize(faceNormal);
 
                 // Add the face normal to each vertex normal
-                normals.push_back(faceNormal);
-                normals.push_back(faceNormal);
-                normals.push_back(faceNormal);
+                normals.push_back(normalized);
+                normals.push_back(normalized);
+                normals.push_back(normalized);
             }
     }
 
@@ -312,5 +314,5 @@ void ChunkGenerator::constructChunk()
         // Add indices to chunk
         chunkData->indices = indices;
 
-        chunkData->log();
+        //chunkData->log();
     }

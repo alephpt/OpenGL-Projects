@@ -3,12 +3,12 @@
 // A Basic Logger type that can be called Logger::Debug("Message %s", "Hello World");
 // This is a simple logger that can be used to log messages to the console.
 
-enum DebugLevel{
-    Verbose,
-    Debug,
-    Info,
-    Warning,
-    Error
+enum class DebugLevel{
+    Verbose = 5,
+    Debug = 4,
+    Info = 3,
+    Warning = 2,
+    Error = 1,
 };
 
 class Logger{
@@ -18,6 +18,6 @@ class Logger{
         static void Info(const char* message, ...);
         static void Warning(const char* message, ...);
         static void Error(const char* message, ...);
-        static void SetLevel(DebugLevel);
-        static DebugLevel level;  
+        
+        static DebugLevel level;
 };

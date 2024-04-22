@@ -1,4 +1,5 @@
 #include "chunk.h"
+#include "../../components/utility/logger.h"
 
 #include <sstream>
 #include <string.h>
@@ -147,10 +148,10 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
 
 void Chunk::log() const
     {
-        printf("Vertices: %d\n", vertices.size());
-        printf("\tPosition: %f, %f, %f\n", vertices[0].position.x, vertices[0].position.y, vertices[0].position.z);
-        printf("\tColor: %f, %f, %f\n", vertices[0].color.x, vertices[0].color.y, vertices[0].color.z);
-        printf("\tNormal: %f, %f, %f\n", vertices[0].normal.x, vertices[0].normal.y, vertices[0].normal.z);
-        printf("Indices: %d\n", indices.size());
-        printf("Offset: %d, %d, %d\n", offset.x, offset.y, offset.z);
+        Logger::Verbose("Vertices: %d\n", vertices.size());
+        Logger::Verbose("\tPosition: %f, %f, %f\n", vertices[0].position.x, vertices[0].position.y, vertices[0].position.z);
+        Logger::Verbose("\tColor: %f, %f, %f\n", vertices[0].color.x, vertices[0].color.y, vertices[0].color.z);
+        Logger::Verbose("\tNormal: %f, %f, %f\n", vertices[0].normal.x, vertices[0].normal.y, vertices[0].normal.z);
+        Logger::Verbose("Indices: %d\n", indices.size());
+        Logger::Verbose("Offset: %d, %d, %d\n", offset.x, offset.y, offset.z);
     }
