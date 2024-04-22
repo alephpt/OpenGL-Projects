@@ -7,7 +7,7 @@ CC = g++
 DFLAGS = -g -fsanitize=address
 
 # Libraries
-LIBS = -lglfw -ldl -pthread
+LIBS = -lglfw -ldl -pthread -lGL
 
 # Source files
 SRC = main.cpp cavegen/components/glad.c cavegen/*.cpp cavegen/*/*/*.cpp

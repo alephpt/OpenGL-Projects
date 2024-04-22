@@ -11,7 +11,11 @@ void CaveGeneration::playerControls()
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             { 
                 if (CaveGeneration::camera.freeMouse)
-                    { CaveGeneration::camera.killapp = true; }
+                    { 
+                        CaveGeneration::camera.killapp = true; 
+                        CaveGeneration::camera.freeMouse = false;
+                        Logger::Info("Exiting Application");
+                    }
                 else
                     { CaveGeneration::camera.freeMouse = true; }
             }

@@ -10,7 +10,6 @@ Camera CaveGeneration::camera = Camera();
 
 CaveGeneration::CaveGeneration()
     {
-        Logger::SetLevel(debugLevel);
         //glDebugMessageCallback(gl_error_callback, 0);
 
         if (!initGLFW())

@@ -6,11 +6,6 @@
 
 DebugLevel Logger::level = DebugLevel::Info;
 
-void Logger::SetLevel(DebugLevel set_level)
-    {
-        level = set_level;
-    }
-
 void Logger::Error(const char *message, ...)
     {
         if (level < DebugLevel::Error) { return; }
