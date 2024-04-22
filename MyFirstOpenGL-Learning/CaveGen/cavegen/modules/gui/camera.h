@@ -6,7 +6,7 @@
 struct Camera {
     glm::vec3 up = glm::vec3(0.0f, -1.0f, 0.0f);
     glm::vec3 front = glm::vec3(0.7f, -0.15f, 0.70f);
-    glm::vec3 location = glm::vec3(180.8f, -366.87f, 146.8f);
+    glm::vec3 location = glm::vec3(-43.48f, -16.27f, -14.17f);
     glm::vec3 position = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 direction;
     const float speed = 1.12f;
