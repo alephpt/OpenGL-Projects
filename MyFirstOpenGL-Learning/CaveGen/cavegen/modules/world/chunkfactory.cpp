@@ -155,77 +155,90 @@ void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
                 switch (indexTable[bIndex][_idx])
                     {
                         case 0:  // // find the isoverts between 0 and 1
-                            _vertices.x = Isovert(_x) + chunkData->offset.x;
-                            _vertices.y = _y + chunkData->offset.y;
-                            _vertices.z = _z + chunkData->offset.z;
+                            _vertices.x = Isovert(_x);
+                            _vertices.y = _y;
+                            _vertices.z = _z;
                             break;
                         case 1: // // find the isoverts between 1 and 2
-                            _vertices.x = _x + 1 + chunkData->offset.x;
-                            _vertices.y = _y + chunkData->offset.y;
-                            _vertices.z = Isovert(_z) + chunkData->offset.z;
+                            _vertices.x = _x + 1;
+                            _vertices.y = _y;
+                            _vertices.z = Isovert(_z);
                             break;
                         case 2: // // find the isoverts between 2 and 3
-                            _vertices.x = Isovert(_x) + chunkData->offset.x;
-                            _vertices.y = _y + chunkData->offset.y;
-                            _vertices.z = _z + 1 + chunkData->offset.z;
+                            _vertices.x = Isovert(_x);
+                            _vertices.y = _y;
+                            _vertices.z = _z + 1;
                             break;
                         case 3: // // find the isoverts between 3 and 0 
-                            _vertices.x = _x + chunkData->offset.x;
-                            _vertices.y = _y + chunkData->offset.y;
-                            _vertices.z = Isovert(_z) + chunkData->offset.z;
+                            _vertices.x = _x;
+                            _vertices.y = _y;
+                            _vertices.z = Isovert(_z);
                             break;
                         case 4: // // find the isoverts between 4 and 5
-                            _vertices.x = Isovert(_x) + chunkData->offset.x;
-                            _vertices.y = _y + 1 + chunkData->offset.y;
-                            _vertices.z = _z + chunkData->offset.z;
+                            _vertices.x = Isovert(_x);
+                            _vertices.y = _y + 1;
+                            _vertices.z = _z;
                             break;
                         case 5: // // find the isoverts between 5 and 6
-                            _vertices.x = _x + 1 + chunkData->offset.x;
-                            _vertices.y = _y + 1 + chunkData->offset.y;
-                            _vertices.z = Isovert(_z) + chunkData->offset.z;
+                            _vertices.x = _x + 1;
+                            _vertices.y = _y + 1;
+                            _vertices.z = Isovert(_z);
                             break;
                         case 6: // // find the isoverts between 6 and 7
-                            _vertices.x = Isovert(_x) + chunkData->offset.x;
-                            _vertices.y = _y + 1 + chunkData->offset.y; 
-                            _vertices.z = _z + 1 + chunkData->offset.z;
+                            _vertices.x = Isovert(_x);
+                            _vertices.y = _y + 1; 
+                            _vertices.z = _z + 1;
                             break;
                         case 7: // // find the isoverts between 7 and 4
-                            _vertices.x = _x + chunkData->offset.x;
-                            _vertices.y = _y + 1 + chunkData->offset.y;
-                            _vertices.z = Isovert(_z) + chunkData->offset.z;
+                            _vertices.x = _x;
+                            _vertices.y = _y + 1;
+                            _vertices.z = Isovert(_z);
                             break;
                         case 8: // // find the isoverts between 0 and 4
-                            _vertices.x = _x + chunkData->offset.x;
-                            _vertices.y = Isovert(_y) + chunkData->offset.y;
-                            _vertices.z = _z + chunkData->offset.z;
+                            _vertices.x = _x;
+                            _vertices.y = Isovert(_y);
+                            _vertices.z = _z;
                             break;
                         case 9: // // find the isoverts between 1 and 5
-                            _vertices.x = _x + 1 + chunkData->offset.x;
-                            _vertices.y = Isovert(_y) + chunkData->offset.y;
-                            _vertices.z = _z + chunkData->offset.z;
+                            _vertices.x = _x + 1;
+                            _vertices.y = Isovert(_y);
+                            _vertices.z = _z;
                             break;
                         case 10: // // find the isoverts between 2 and 6
                             _vertices.x = _x + 1;
-                            _vertices.y = Isovert(_y) + chunkData->offset.y;
-                            _vertices.z = _z + 1 + chunkData->offset.z;
+                            _vertices.y = Isovert(_y);
+                            _vertices.z = _z + 1;
                             break;
                         case 11: // // find the isoverts between 0 and 7
-                            _vertices.x = _x + chunkData->offset.x;
-                            _vertices.y = Isovert(_y) + chunkData->offset.y;
-                            _vertices.z = _z + 1 + chunkData->offset.z;
+                            _vertices.x = _x;
+                            _vertices.y = Isovert(_y);
+                            _vertices.z = _z + 1;
                             break;
                     }
 
+
+                // auto it = std::find(positions.begin(), positions.end(), _vertices);
+                // if(it == positions.end())
+                //     {
+                //         _vec_idx = positions.size();
+                //         positions.push_back(_vertices);
+                //         indices.push_back(_vec_idx);
+                //     }
+                // else
+                //     { indices.push_back(it - positions.begin()); }
 
                 auto it = std::find(positions.begin(), positions.end(), _vertices);
                 if(it == positions.end())
                     {
-                        _vec_idx = positions.size();
+                        _vec_idx = std::distance(positions.begin(), it);
                         positions.push_back(_vertices);
                         indices.push_back(_vec_idx);
                     }
                 else
-                    { indices.push_back(it - positions.begin()); }
+                    { 
+                        _vec_idx = std::distance(positions.begin(), it);
+                        indices.push_back(_vec_idx);
+                    }
 
                 _idx++;
             }
@@ -319,7 +332,16 @@ void ChunkGenerator::constructChunk()
         for(int i = 0; i < positions.size(); i++)
             { 
                 if (i < colors.size() && i < normals.size())
-                    { chunkData->vertices.push_back({positions[i], colors[i], normals[i]});  }
+                    { chunkData->vertices.push_back(
+                        {
+                            {
+                                positions[i].x + chunkData->offset.x, 
+                                positions[i].y + chunkData->offset.y,
+                                positions[i].z + chunkData->offset.z
+                            },
+                            colors[i], 
+                            normals[i]}
+                        );  }
             }
         
         // Add indices to chunk

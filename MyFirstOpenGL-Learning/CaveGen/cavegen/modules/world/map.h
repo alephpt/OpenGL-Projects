@@ -11,8 +11,8 @@ class World{
     public:
         int area = 1;
         int chunkSize = 30;
-        ChunkConfig config = ChunkConfig(fillMode);
         FillMode fillMode = FillMode::Edges;
+        ChunkConfig config = ChunkConfig(fillMode);
         glm::ivec3 lastChunk;
         glm::ivec3 currentChunk;
         std::set<glm::ivec3, Vec3Compare> new_chunks;
