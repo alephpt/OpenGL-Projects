@@ -43,11 +43,11 @@ World::~World()
 void World::UpdateChunks(glm::vec3 &playerLoc) 
     {
         // Calculate current chunk based on player's position
-        glm::ivec3 currentChunk = glm::ivec3(
-            static_cast<int>(playerLoc.x / chunkSize),
-            static_cast<int>(playerLoc.y / chunkSize),
-            static_cast<int>(playerLoc.z / chunkSize)
-        );
+        glm::ivec3 currentChunk = {
+            playerLoc.x >= 0 ? (int)playerLoc.x / chunkSize : (int)playerLoc.x / chunkSize - 1, // We need to subtract 1 if the player is in the negative
+            playerLoc.y >= 0 ? (int)playerLoc.y / chunkSize : (int)playerLoc.y / chunkSize - 1, // to get the correct chunk because +/-1 is the same chunk
+            playerLoc.z >= 0 ? (int)playerLoc.z / chunkSize : (int)playerLoc.z / chunkSize - 1  // and puts us off by one
+        };
 
 
         // Check if player has moved to a new chunk
@@ -59,11 +59,11 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                 visible_chunks.clear();
 
                 // Create a new set of visible chunks
-                for (int x = 0 - area; x <= 0 + area; x++)                   // -1 is left
+                for (int x = -1 - area; x <= -1 + area; x++)                   // -1 is left
                     {
-                        for (int y = 0 - area; y <= 0 + area; y++)            // -1 is up
+                        for (int y = -1 - area; y <= -1 + area; y++)            // -1 is up
                             {
-                                for (int z = 0 - area; z <= 0 + area; z++)    // +1 is back
+                                for (int z = -1 - area; z <= -1 + area; z++)    // +1 is back
                                     {
                                         glm::ivec3 chunk = glm::ivec3(
                                             -currentChunk.x + x,

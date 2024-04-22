@@ -10,14 +10,13 @@ void CaveGeneration::playerControls()
 
         if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             { 
-                if (CaveGeneration::camera.freeMouse)
+                if (!CaveGeneration::camera.freeMouse)
+                    { CaveGeneration::camera.freeMouse = true; }
+                else
                     { 
                         CaveGeneration::camera.killapp = true; 
-                        CaveGeneration::camera.freeMouse = false;
                         Logger::Info("Exiting Application");
                     }
-                else
-                    { CaveGeneration::camera.freeMouse = true; }
             }
 
         if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -46,9 +45,9 @@ void CaveGeneration::playerControls()
                 CaveGeneration::camera.location.x -= directxe;
             }
 
-        if(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS)
+        if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) // UP
             { CaveGeneration::camera.location.y -= CaveGeneration::camera.speed * 0.635f; }
 
-        if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-            { CaveGeneration::camera.location.y += CaveGeneration::camera.speed / 2; }
+        if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) // DOWN
+            { CaveGeneration::camera.location.y += CaveGeneration::camera.speed * 0.635f; }
     }
