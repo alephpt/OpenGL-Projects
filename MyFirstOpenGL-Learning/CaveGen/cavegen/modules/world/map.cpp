@@ -59,16 +59,16 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                 visible_chunks.clear();
 
                 // Create a new set of visible chunks
-                for (int x = 1 - area; x <= 1 + area; x++)                   // -1 is left
+                for (int x = 0 - area; x <= 0 + area; x++)                   // -1 is left
                     {
                         for (int y = 0 - area; y <= 0 + area; y++)            // -1 is up
                             {
-                                for (int z = 1 - area; z <= 1 + area; z++)    // +1 is back
+                                for (int z = 0 - area; z <= 0 + area; z++)    // +1 is back
                                     {
                                         glm::ivec3 chunk = glm::ivec3(
-                                            currentChunk.x + x,
-                                            currentChunk.y + y,
-                                            currentChunk.z + z
+                                            -currentChunk.x + x,
+                                            -currentChunk.y + y,
+                                            -currentChunk.z + z
                                         );
 
                                         visible_chunks.insert(chunk);
@@ -76,11 +76,12 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                             }
                     }
                 
-                // the new chunks are the chunks in in the visible_chunks set that are not in the previous_chunks set
-                std::set_difference(visible_chunks.begin(), visible_chunks.end(), previous_chunks.begin(), previous_chunks.end(), std::inserter(new_chunks, new_chunks.begin()), Vec3Compare());
 
                 // the delete chunks are the chunks in the previous_chunks set that are not in the visible_chunks set
                 std::set_difference(previous_chunks.begin(), previous_chunks.end(), visible_chunks.begin(), visible_chunks.end(), std::inserter(delete_chunks, delete_chunks.begin()), Vec3Compare());
+
+                // the new chunks are the chunks in in the visible_chunks set that are not in the previous_chunks set
+                std::set_difference(visible_chunks.begin(), visible_chunks.end(), previous_chunks.begin(), previous_chunks.end(), std::inserter(new_chunks, new_chunks.begin()), Vec3Compare());
 
                 const char* type = FILL_MODE_STR(fillMode);
 
