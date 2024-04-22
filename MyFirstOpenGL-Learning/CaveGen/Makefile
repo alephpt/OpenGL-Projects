@@ -22,10 +22,13 @@ run:
 	$(OUT)
 
 # Clean
-clean:
-	rm $(OUT)
+new:
+	rm -v $(FILES)*
+	$(CC) $(SRC) $(LIBS) -o $(OUT)
+	$(OUT)
 
 purge:
+	rm $(OUT)
 	rm -v $(FILES)*
 
 # Debug

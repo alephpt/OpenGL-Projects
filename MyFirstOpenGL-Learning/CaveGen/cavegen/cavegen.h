@@ -16,7 +16,7 @@ class CaveGeneration {
 
         const int screenHeight = 1080;
         const int screenWidth = 1640;
-        const DebugLevel debugLevel = DebugLevel::Debug ;
+        const DebugLevel debugLevel = DebugLevel::Info;
 
         bool initGLFW();
         bool initBuffers();

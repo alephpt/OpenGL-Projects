@@ -41,8 +41,8 @@ Chunk* ChunkGenerator::Generate(glm::ivec3 offset, int chunkSize, ChunkConfig co
 
         _chunk_t->NoiseGeneration();
         
-//        for (int smooth = 0; smooth < _chunk_t->howSmooth; smooth++)
-//            { _chunk_t->Automata(); }
+        for (int smooth = 0; smooth < _chunk_t->howSmooth; smooth++)
+            { _chunk_t->Automata(); }
         
         _chunk_t->March();
         _chunk_t->Colorize();
@@ -127,14 +127,14 @@ int ChunkGenerator::Cube2Bin(int z, int y, int x)
     {
         int _binary_value = 0;
         
-        _binary_value |= (noise[index(z, y, x, size)] < (fillCutOff ? 1 : 0) << 0);              // lower left back
-        _binary_value |= (noise[index(z, y, x + 1, size)] < (fillCutOff ? 1 : 0) << 1);          // lower right back
-        _binary_value |= (noise[index(z + 1, y, x + 1, size)] < (fillCutOff ? 1 : 0) << 2);      // lower right front
-        _binary_value |= (noise[index(z + 1, y, x, size)] < (fillCutOff ? 1 : 0) << 3);          // lower left front
-        _binary_value |= (noise[index(z, y + 1, x, size)] < (fillCutOff ? 1 : 0) << 4);          // upper left back
-        _binary_value |= (noise[index(z, y + 1, x + 1, size)] < (fillCutOff ? 1 : 0) << 5);      // upper right back
-        _binary_value |= (noise[index(z + 1, y + 1, x + 1, size)] < (fillCutOff ? 1 : 0) << 6);  // upper right front
-        _binary_value |= (noise[index(z + 1, y + 1, x, size)] < (fillCutOff ? 1 : 0) << 7);      // upper left front
+        _binary_value |= ((noise[index(z, y, x, size)] < fillCutOff) ? 1 : 0) << 0;              // lower left back
+        _binary_value |= ((noise[index(z, y, x + 1, size)] < fillCutOff) ? 1 : 0) << 1;          // lower right back
+        _binary_value |= ((noise[index(z + 1, y, x + 1, size)] < fillCutOff) ? 1 : 0) << 2;      // lower right front
+        _binary_value |= ((noise[index(z + 1, y, x, size)] < fillCutOff) ? 1 : 0) << 3;          // lower left front
+        _binary_value |= ((noise[index(z, y + 1, x, size)] < fillCutOff) ? 1 : 0) << 4;          // upper left back
+        _binary_value |= ((noise[index(z, y + 1, x + 1, size)] < fillCutOff) ? 1 : 0) << 5;      // upper right back
+        _binary_value |= ((noise[index(z + 1, y + 1, x + 1, size)] < fillCutOff) ? 1 : 0) << 6;  // upper right front
+        _binary_value |= ((noise[index(z + 1, y + 1, x, size)] < fillCutOff) ? 1 : 0) << 7;      // upper left front
 
         return _binary_value;
     }
@@ -147,10 +147,11 @@ void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
     {
         int _idx = 0;
         int _vec_idx = 0;
-        glm::vec3 _vertices;
 
         while (indexTable[bIndex][_idx] != -1)
             {
+                glm::vec3 _vertices;
+                Logger::Verbose("Index: %d\n", indexTable[bIndex][_idx]);
                 switch (indexTable[bIndex][_idx])
                     {
                         case 0:  // // find the isoverts between 0 and 1
@@ -226,7 +227,6 @@ void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
                 else
                     { indices.push_back(it - positions.begin()); }
 
-                _vertices = glm::vec3(0.0f);
                 _idx++;
             }
     }
@@ -278,6 +278,8 @@ void ChunkGenerator::Colorize()
  // Finds the coordinates of vertices based on index, and calculates normal directions.
 void ChunkGenerator::Normalize()
     {
+        Logger::Debug("Normalizing Vertices:\n");
+        Logger::Debug("Vertices: %d\n", positions.size());
         // Calculate normals for each triangle and add them to corresponding vertices
         for (int i = 0; i < indices.size(); i += 3) 
             {
@@ -286,19 +288,28 @@ void ChunkGenerator::Normalize()
                 glm::vec3 p3 = positions[indices[i + 2]];
 
                 Logger::Debug("P1: %f %f %f\n", p1.x, p1.y, p1.z);
+                Logger::Debug("P2: %f %f %f\n", p2.x, p2.y, p2.z);
+                Logger::Debug("P3: %f %f %f\n", p3.x, p3.y, p3.z);
 
                 // Calculate the edges of the triangle
                 glm::vec3 edge1 = p2 - p1;
                 glm::vec3 edge2 = p3 - p1;
 
+                Logger::Debug("Edge1: %f %f %f\n", edge1.x, edge1.y, edge1.z);
+                Logger::Debug("Edge2: %f %f %f\n", edge2.x, edge2.y, edge2.z);
+
                 // Calculate the face normal
                 glm::vec3 faceNormal = glm::cross(edge1, edge2);
                 glm::vec3 normalized = glm::normalize(faceNormal);
+
+                Logger::Debug("FaceNormal: %f %f %f\n", faceNormal.x, faceNormal.y, faceNormal.z);
+                Logger::Debug("Normal: %f %f %f\n", normalized.x, normalized.y, normalized.z);
 
                 // Add the face normal to each vertex normal
                 normals.push_back(normalized);
                 normals.push_back(normalized);
                 normals.push_back(normalized);
+                Logger::Debug("Normals Size: %d\n", normals.size());
             }
     }
 

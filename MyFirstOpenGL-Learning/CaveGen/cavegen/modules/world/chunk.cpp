@@ -100,7 +100,7 @@ void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
     {
         // Offload chunk data to disk
         std::ostringstream oss;
-        oss << "/home/persist/mine/repos/map_chunks/" << type << "_" << chunk->first.x << chunk->first.y << chunk->first.z << ".chunk";
+        oss << "/home/persist/mine/repos/map_chunks/" << type << "_x" << chunk->first.x << "_y" << chunk->first.y << "_z" << chunk->first.z << ".chunk";
         std::string filename = oss.str();
         printf("Offloading Chunk to File: %s\n", filename.c_str());
         std::ofstream ofs(filename, std::ios::binary);
@@ -116,7 +116,7 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
     {
         // Check if file exists
         std::ostringstream oss;
-        oss << "/home/persist/mine/repos/map_chunks/" << type << "_" << chunk.x << chunk.y << chunk.z << ".chunk";
+        oss << "/home/persist/mine/repos/map_chunks/" << type << "_x" << chunk.x << "_y" << chunk.y << "_z" << chunk.z << ".chunk";
         std::string filename = oss.str();
 
         if (access(filename.c_str(), F_OK) == -1) 
@@ -148,6 +148,8 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
 
 void Chunk::log() const
     {
+        if (vertices.size() == 0) 
+            { Logger::Error("Chunk is Empty\n"); return; }
         Logger::Verbose("Vertices: %d\n", vertices.size());
         Logger::Verbose("\tPosition: %f, %f, %f\n", vertices[0].position.x, vertices[0].position.y, vertices[0].position.z);
         Logger::Verbose("\tColor: %f, %f, %f\n", vertices[0].color.x, vertices[0].color.y, vertices[0].color.z);
