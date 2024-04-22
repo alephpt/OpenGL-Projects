@@ -216,17 +216,6 @@ void ChunkGenerator::GenVertexData(int bIndex, float _z, float _y, float _x)
                             break;
                     }
 
-
-                // auto it = std::find(positions.begin(), positions.end(), _vertices);
-                // if(it == positions.end())
-                //     {
-                //         _vec_idx = positions.size();
-                //         positions.push_back(_vertices);
-                //         indices.push_back(_vec_idx);
-                //     }
-                // else
-                //     { indices.push_back(it - positions.begin()); }
-
                 auto it = std::find(positions.begin(), positions.end(), _vertices);
                 if(it == positions.end())
                     {
