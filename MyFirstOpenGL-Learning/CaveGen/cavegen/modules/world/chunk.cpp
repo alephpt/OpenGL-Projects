@@ -38,7 +38,7 @@ static inline bool consume(std::stringstream& ss, const std::string& token)
     {
         std::string t;
         if (ss >> t && t != token) 
-            { printf("[DESERIALIZE]::ERROR - Expected Token: %s Received Token: %s\n", token.c_str(), t.c_str()); return false; }
+            { Logger::Error("[DESERIALIZE]::ERROR - Expected Token: %s Received Token: %s\n", token.c_str(), t.c_str()); return false; }
         return true;
     }
 
@@ -52,38 +52,50 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
 
         // Deserialize vertices
         if (ss >> token && token != "{") 
-            { printf("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); return data; }
 
         if (ss >> token && token != "\"vertex\":") 
-            { printf("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\": Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\": Received Token: %s\n", token.c_str()); return data; }
 
         if (ss >> token && token != "[") 
-            { printf("[DESERIALIZE]::ERROR - vertex - Expected Token: [ Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: [ Received Token: %s\n", token.c_str()); return data; }
 
         // disassemble vertex { (x,y,z), (r,g,b), (nx,ny,nz) }
-        while (ss >> token && token != "}") 
+        while (consume(ss, "{"))
             { 
-                if (token == "{") continue;
-                
                 std::istringstream iss(token);
                 while(std::getline(iss, token, '|'))
                     {
-                        std::istringstream iss(token);
-                        std::string value;
+                        // split vertex data into position, color, and normal
+                        std::vector<float> vertex;
+                        std::istringstream vss(token);
+                        while(std::getline(vss, token, ','))
+                            {
+                                try { vertex.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
+                                    { Logger::Error("[DESERIALIZE]::ERROR - vertex - Received Token: %s\n", token.c_str()); return data; }
+                            }
                         
+                        // create vertex
+                        Vertex v;
+                        v.position = glm::vec3(vertex[0], vertex[1], vertex[2]);
+                        v.color = glm::vec3(vertex[3], vertex[4], vertex[5]);
+                        v.normal = glm::vec3(vertex[6], vertex[7], vertex[8]);
                         
+                        // add vertex to vertices
+                        data->vertices.push_back(v);
                     }
 
+                consume(ss, "},");
             }
 
-        if (ss >> token && token != "]}") 
+        if (consume(ss, "]}")) 
             { 
                 std::vector<int> offset;
                 std::istringstream iss(token);
                 while(std::getline(iss, token, ','))
                     {
                         try { offset.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
-                            { printf("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data; }
+                            { Logger::Error("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data; }
                     }
 
                 data->offset = glm::ivec3(offset[0], offset[1], offset[2]);
@@ -102,11 +114,11 @@ void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
         std::ostringstream oss;
         oss << "/home/persist/mine/repos/map_chunks/" << type << "_x" << chunk->first.x << "_y" << chunk->first.y << "_z" << chunk->first.z << ".chunk";
         std::string filename = oss.str();
-        printf("Offloading Chunk to File: %s\n", filename.c_str());
+        Logger::Debug("Offloading Chunk to File: %s\n", filename.c_str());
         std::ofstream ofs(filename, std::ios::binary);
 
         if (!ofs) 
-            { std::cerr << " [OffloadChunk]: Failed to Offload Chunk to File: " << filename << std::endl; return; }
+            { Logger::Error(" [OffloadChunk]: Failed to Offload Chunk to File: %s\n", filename); return; }
 
         ofs << chunk->second.Serialize().c_str();
         ofs.close();
@@ -120,13 +132,13 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
         std::string filename = oss.str();
 
         if (access(filename.c_str(), F_OK) == -1) 
-            { std::cerr << "\t [LoadChunk]: File does not exist: " << filename << std::endl; return false; }
+            { Logger::Error("\t [LoadChunk]: File does not exist: %s\n", filename.c_str()); return false; }
 
         std::ifstream ifs(filename, std::ios::binary);
         if (!ifs) 
-            { std::cerr << "\t [LoadChunk]: Failed to open file: " << filename << std::endl; return false; }
+            { Logger::Error("\t [LoadChunk]: Failed to open file: %s\n", filename.c_str()); return false;}
 
-        printf("\t [LoadChunk]: Loading Chunk from File: %s\n", filename.c_str());
+        Logger::Debug("\t [LoadChunk]: Loading Chunk from File: %s\n", filename.c_str());
         // deserialize data from file
         std::string serializedData;
         ifs.seekg(0, std::ios::end);
@@ -141,7 +153,7 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
         ifs.close();
 
         if (MapChunk->vertices.size() == 0) 
-            { std::cerr << "\t [LoadChunk]: Failed to Load Chunk from File: " << filename << std::endl; return false; }
+            { Logger::Error("\t [LoadChunk]: Chunk is Empty.\n"); return false; }
 
         return true;
     }
