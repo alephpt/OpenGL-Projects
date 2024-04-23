@@ -5,9 +5,6 @@
 // static camera object
 Camera CaveGeneration::camera = Camera();
 
-// initialize glDebugMessageCallback
-
-
 CaveGeneration::CaveGeneration()
     {
         //glDebugMessageCallback(gl_error_callback, 0);
@@ -99,7 +96,10 @@ static inline void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void CaveGeneration::updateWorld()
     {
         // Update the world chunks
-        world.UpdateChunks(CaveGeneration::camera.location);
+        world.UpdateChunks(CaveGeneration::camera.location, 
+                            CaveGeneration::camera.direction, 
+                            CaveGeneration::camera.up,
+                            halfFOV);
         
         // If the map table size changes, reinitialize the object buffer
         if (world.delete_chunks.size() > 0 || world.new_chunks.size() > 0)
@@ -204,7 +204,6 @@ void CaveGeneration::MVP()
         // assign the camera position to the lightPos uniform
         GLuint lightPos = glGetUniformLocation(shader, "lightPos");
         glUniform3f(lightPos, camera.position.x, camera.position.y, camera.position.z);
-
     }
 
 // deletes shader program and buffers

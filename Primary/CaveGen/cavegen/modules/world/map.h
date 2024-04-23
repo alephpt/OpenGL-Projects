@@ -9,12 +9,10 @@
 
 class World{
     public:
-        int area = 2;
+        int depthOfView = 4;
         int chunkSize = 20;
         FillMode fillMode = FillMode::Edges;
         ChunkConfig config = ChunkConfig(fillMode);
-        glm::ivec3 lastChunk;
-        glm::ivec3 currentChunk;
         std::set<glm::ivec3, Vec3Compare> new_chunks;
         std::set<glm::ivec3, Vec3Compare> delete_chunks;
         std::set<glm::ivec3, Vec3Compare> visible_chunks;
@@ -23,7 +21,7 @@ class World{
         World();
         ~World();
 
-        void UpdateChunks(glm::vec3&);
+        void UpdateChunks(glm::vec3&, glm::vec3&, glm:: vec3&, const float&);
         void reset();
         void solidFill();
         void edgeFill();

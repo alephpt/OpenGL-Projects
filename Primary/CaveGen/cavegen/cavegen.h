@@ -16,6 +16,9 @@ class CaveGeneration {
 
         const int screenHeight = 1080;
         const int screenWidth = 1640;
+        const float verticalFOV = 60.0f;
+        const float horizontalFOV = 2.0f * atan(tan(verticalFOV * 0.5f) * (screenWidth / screenHeight));
+        const float halfFOV = horizontalFOV * 0.5f;
         const DebugLevel debugLevel = DebugLevel::Verbose;
 
         bool initGLFW();

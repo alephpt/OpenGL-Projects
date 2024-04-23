@@ -82,9 +82,10 @@ void CaveGeneration:: imgui(bool show_window)
                 ImGui::Separator();
                                 
                 ImGui::Text("Grid Position"); ImGui::NextColumn();
-                ImGui::Text("%i", world.lastChunk.x); ImGui::NextColumn();
-                ImGui::Text("%i", world.lastChunk.y); ImGui::NextColumn();
-                ImGui::Text("%i", world.lastChunk.z); ImGui::NextColumn();
+                glm::vec3 current_position = CaveGeneration::camera.location / (float)world.chunkSize;
+                ImGui::Text("%i", current_position.x); ImGui::NextColumn();
+                ImGui::Text("%i", current_position.y); ImGui::NextColumn();
+                ImGui::Text("%i", current_position.z); ImGui::NextColumn();
 
                 ImGui::Text("Location"); ImGui::NextColumn();
                 ImGui::Text("%.2f", camera.location.x); ImGui::NextColumn();
@@ -136,7 +137,7 @@ void CaveGeneration:: imgui(bool show_window)
                         world.fillMode = FillMode::Custom;
                     }
 
-                ImGui::SliderInt(" - Visible Area", &world.area, 0, 5);
+                ImGui::SliderInt(" - Visible Area", &world.depthOfView, 0, 25);
 
                 if(ImGui::Button("Regen"))
                     { 
