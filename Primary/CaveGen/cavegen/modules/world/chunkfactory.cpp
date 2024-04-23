@@ -245,6 +245,8 @@ void ChunkGenerator::March()
         //     }
     }
 
+static inline float clamp(float x, float lower, float upper) { return std::max(lower, std::min(x, upper)); }
+
  // Populates Color vectors.
 void ChunkGenerator::Colorize()
     {
@@ -266,48 +268,46 @@ void ChunkGenerator::Colorize()
 
             // Pretty cloud colors
             float red = 0.2f;
-            float green = 0.8f;
-            float blue = 1.0f;
+            float green = red + 0.5f * (positions[i].y / (size + 10) * colorvar); // y gradient with randomness
+            float blue = 0.7f * (colorvar / (positions[i].y + 0.2f)); // z gradient with randomness
 
-            colors.push_back({red, red + green * (positions[i].y / (size + 10) * colorvar), red + blue * (colorvar / (positions[i].y + 0.2f))});
+
+            colors.push_back({red, clamp(green, 0.0f, 1.0f), clamp(blue, 0.0f, 1.0f)});
         }
     }
+
+
+const float epsilon = 0.0001f;
 
  // Finds the coordinates of vertices based on index, and calculates normal directions.
 void ChunkGenerator::Normalize()
     {
         Logger::Debug("Normalizing Vertices:\n");
         Logger::Debug("Vertices: %d\n", positions.size());
-        // Calculate normals for each triangle and add them to corresponding vertices
-        for (int i = 0; i < indices.size(); i += 3) 
+        
+        for (int i = 0; i < positions.size(); i+=3)
             {
-                glm::vec3 p1 = positions[indices[i]];
-                glm::vec3 p2 = positions[indices[i + 1]];
-                glm::vec3 p3 = positions[indices[i + 2]];
+                glm::vec3 v1 = positions[i];
+                glm::vec3 v2 = positions[i + 1];
+                glm::vec3 v3 = positions[i + 2];
 
-                Logger::Debug("P1: %f %f %f\n", p1.x, p1.y, p1.z);
-                Logger::Debug("P2: %f %f %f\n", p2.x, p2.y, p2.z);
-                Logger::Debug("P3: %f %f %f\n", p3.x, p3.y, p3.z);
+                // make sure we never end up with -nan
+                if (glm::length(glm::cross(v2 - v1, v3 - v1)) < epsilon)
+                    { 
+                        normals.push_back({0.0f, 0.0f, 0.0f});
+                        normals.push_back({0.0f, 0.0f, 0.0f});
+                        normals.push_back({0.0f, 0.0f, 0.0f});    
+                        continue; 
+                    } // skip degenerate triangles (zero area)
 
-                // Calculate the edges of the triangle
-                glm::vec3 edge1 = p2 - p1;
-                glm::vec3 edge2 = p3 - p1;
+                glm::vec3 normal = glm::normalize(glm::cross(v2 - v1, v3 - v1));
 
-                Logger::Debug("Edge1: %f %f %f\n", edge1.x, edge1.y, edge1.z);
-                Logger::Debug("Edge2: %f %f %f\n", edge2.x, edge2.y, edge2.z);
+                if (glm::dot(normal, v1) < 0)
+                    { normal = -normal; }
 
-                // Calculate the face normal
-                glm::vec3 faceNormal = glm::cross(edge1, edge2);
-                glm::vec3 normalized = glm::normalize(faceNormal);
-
-                Logger::Debug("FaceNormal: %f %f %f\n", faceNormal.x, faceNormal.y, faceNormal.z);
-                Logger::Debug("Normal: %f %f %f\n", normalized.x, normalized.y, normalized.z);
-
-                // Add the face normal to each vertex normal
-                normals.push_back(normalized);
-                normals.push_back(normalized);
-                normals.push_back(normalized);
-                Logger::Debug("Normals Size: %d\n", normals.size());
+                normals.push_back(normal);
+                normals.push_back(normal);
+                normals.push_back(normal);
             }
     }
 
@@ -316,17 +316,16 @@ void ChunkGenerator::constructChunk()
         // Add normals to vertices
         for(int i = 0; i < positions.size(); i++)
             { 
-                if (i < colors.size() && i < normals.size())
-                    { chunkData->vertices.push_back(
+                chunkData->vertices.push_back(
+                    { 
                         {
-                            {
-                                positions[i].x + chunkData->offset.x, 
-                                positions[i].y + chunkData->offset.y,
-                                positions[i].z + chunkData->offset.z
-                            },
-                            colors[i], 
-                            normals[i]}
-                        );  }
+                            positions[i].x + chunkData->offset.x, 
+                            positions[i].y + chunkData->offset.y,
+                            positions[i].z + chunkData->offset.z
+                        },
+                        colors[i], 
+                        normals[i]}
+                    );
             }
         
         // Add indices to chunk

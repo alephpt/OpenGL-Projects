@@ -10,36 +10,32 @@ inline std::string Chunk::Serialize() const
         std::stringstream ss;
         ss << "{\r";
         
-        ss << "\"vertex\": [\r";
+        ss << "\"vertex\":[\r";
         for (auto& vertex : vertices) 
             {
                 ss << "{ " << vertex.position.x << "," << vertex.position.y << "," << vertex.position.z << "|";
                 ss << vertex.color.x << "," << vertex.color.y << "," << vertex.color.z << "|";
                 ss << vertex.normal.x << "," << vertex.normal.y << "," << vertex.normal.z << " },\r";
+
+            }
+        ss << "],\r";
+
+        ss << "\"indices\":[\r";
+        for (auto& index : indices) 
+            { 
+                ss << index; 
+                
+                if (&index != &indices.back()) { ss << ","; }
             }
         ss << "\r],\r";
 
-        ss << "\"indices\": [\r";
-        for (auto& index : indices) 
-            { ss << index << ","; }
-        ss << "\r],\r";
-
-        ss << "\"offset\": [\r" << offset.x << "," << offset.y << "," << offset.z;
+        ss << "\"offset\":[\r" << offset.x << "," << offset.y << "," << offset.z;
         ss << "\r]\r}\r";
 
         // Append EOF character
         ss << '\0';
 
         return ss.str();
-    }
-
-//
-static inline bool consume(std::stringstream& ss, const std::string& token) 
-    {
-        std::string t;
-        if (ss >> t && t != token) 
-            { Logger::Error("[DESERIALIZE]::ERROR - Expected Token: %s Received Token: %s\n", token.c_str(), t.c_str()); return false; }
-        return true;
     }
 
 inline Chunk* Chunk::Deserialize(const std::string& json) 
@@ -54,15 +50,16 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
         if (ss >> token && token != "{") 
             { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); return data; }
 
-        if (ss >> token && token != "\"vertex\":") 
-            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\": Received Token: %s\n", token.c_str()); return data; }
-
-        if (ss >> token && token != "[") 
-            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: [ Received Token: %s\n", token.c_str()); return data; }
+        if (ss >> token && token != "\"vertex\":[")
+            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\":[ Received Token: %s\n", token.c_str()); return data; }
 
         // disassemble vertex { (x,y,z), (r,g,b), (nx,ny,nz) }
-        while (consume(ss, "{"))
+        while (ss >> token && token != "],")
             { 
+                if (token != "{") 
+                    { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); }
+
+                ss >> token;
                 std::istringstream iss(token);
                 while(std::getline(iss, token, '|'))
                     {
@@ -85,16 +82,33 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
                         data->vertices.push_back(v);
                     }
 
-                consume(ss, "},");
+                if (ss >> token && token != "},")
+                    { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: '},' Received Token: %s\n", token.c_str()); return data; }
             }
 
-        if (consume(ss, "]}")) 
-            { 
-                std::vector<int> offset;
-                std::istringstream iss(token);
-                while(std::getline(iss, token, ','))
+        if (ss >> token && token != "\"indices\":[")
+            { Logger::Error("[DESERIALIZE]::ERROR - indices - Expected Token: \"indices\":[ Received Token: %s\n", token.c_str()); return data; }
+        
+        // Deserialize indices
+        while (ss >> token && token != "],")
+            {
+                try { data->indices.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
+                    { Logger::Error("[DESERIALIZE]::ERROR - indices - Received Token: %s\n", token.c_str()); return data; }
+                
+                if (ss.peek() == ',') { ss.ignore(); }
+            }
+
+        if (ss >> token && token != "\"offset\":[")
+            { Logger::Error("[DESERIALIZE]::ERROR - offset - Expected Token: \"offset\":[ Received Token: %s\n", token.c_str()); return data; }
+
+        // Deserialize offset
+        while (ss >> token && token != "]")
+            {
+                std::vector<float> offset;
+                std::istringstream vss(token);
+                while(std::getline(vss, token, ','))
                     {
-                        try { offset.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
+                        try { offset.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
                             { Logger::Error("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data; }
                     }
 
@@ -103,6 +117,7 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
 
         ss.clear();
         data->log();
+        printf("Returning Chunk\n");
 
         // Return deserialized Chunk
         return data;
@@ -162,10 +177,10 @@ void Chunk::log() const
     {
         if (vertices.size() == 0) 
             { Logger::Error("Chunk is Empty\n"); return; }
-        Logger::Verbose("Vertices: %d\n", vertices.size());
-        Logger::Verbose("\tPosition: %f, %f, %f\n", vertices[0].position.x, vertices[0].position.y, vertices[0].position.z);
-        Logger::Verbose("\tColor: %f, %f, %f\n", vertices[0].color.x, vertices[0].color.y, vertices[0].color.z);
-        Logger::Verbose("\tNormal: %f, %f, %f\n", vertices[0].normal.x, vertices[0].normal.y, vertices[0].normal.z);
-        Logger::Verbose("Indices: %d\n", indices.size());
-        Logger::Verbose("Offset: %d, %d, %d\n", offset.x, offset.y, offset.z);
+        Logger::Info("Vertices: %d\n", vertices.size());
+        Logger::Info("\tPosition: %f, %f, %f\n", vertices[0].position.x, vertices[0].position.y, vertices[0].position.z);
+        Logger::Info("\tColor: %f, %f, %f\n", vertices[0].color.x, vertices[0].color.y, vertices[0].color.z);
+        Logger::Info("\tNormal: %f, %f, %f\n", vertices[0].normal.x, vertices[0].normal.y, vertices[0].normal.z);
+        Logger::Info("Indices: %d\n", indices.size());
+        Logger::Info("Offset: %d, %d, %d\n", offset.x, offset.y, offset.z);
     }

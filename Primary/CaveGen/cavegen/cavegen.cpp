@@ -200,6 +200,11 @@ void CaveGeneration::MVP()
         // model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0f, 180.0f, 0.0f));
         // model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(glGetUniformLocation(shader, "model"), 1, GL_FALSE, &model[0][0]);
+
+        // assign the camera position to the lightPos uniform
+        GLuint lightPos = glGetUniformLocation(shader, "lightPos");
+        glUniform3f(lightPos, camera.position.x, camera.position.y, camera.position.z);
+
     }
 
 // deletes shader program and buffers
