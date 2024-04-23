@@ -110,6 +110,7 @@ void World::UpdateChunks(glm::vec3 &playerLoc)
                                 //MapChunk->log();
                             }
 
+                        //MapChunk->log();
                         MapTable.emplace(*it, *MapChunk);
                         delete MapChunk;
                     }            

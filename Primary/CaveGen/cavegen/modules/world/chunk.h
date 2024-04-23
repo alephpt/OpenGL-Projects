@@ -25,7 +25,7 @@ struct Chunk{
 
 	// to JSON
 	std::string Serialize() const;
-	static Chunk* Deserialize(const std::string&);
+	static bool Deserialize(const std::string&, Chunk*);
 	void log() const;
 };
 

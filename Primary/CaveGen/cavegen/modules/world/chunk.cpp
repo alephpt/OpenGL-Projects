@@ -38,20 +38,19 @@ inline std::string Chunk::Serialize() const
         return ss.str();
     }
 
-inline Chunk* Chunk::Deserialize(const std::string& json) 
+inline bool Chunk::Deserialize(const std::string& file, Chunk* data) 
     {
-        Chunk* data = new Chunk();
-        std::stringstream ss(json);
+        std::stringstream ss(file);
         std::string token;
 
         std::vector<Vertex> vertices;
 
         // Deserialize vertices
         if (ss >> token && token != "{") 
-            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: { Received Token: %s\n", token.c_str()); return false; }
 
         if (ss >> token && token != "\"vertex\":[")
-            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\":[ Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: \"vertex\":[ Received Token: %s\n", token.c_str()); return false; }
 
         // disassemble vertex { (x,y,z), (r,g,b), (nx,ny,nz) }
         while (ss >> token && token != "],")
@@ -65,7 +64,7 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
                 while(std::getline(iss, token, ','))
                     {
                         try { vertex.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Received Token: %s\n", token.c_str()); return data; }
+                            { Logger::Error("[DESERIALIZE]::ERROR - vertex - Received Token: %s\n", token.c_str()); return false; }
                     }
                         
                 // create vertex
@@ -78,23 +77,25 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
                 data->vertices.push_back(v);
 
                 if (ss >> token && token != "},")
-                    { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: '},' Received Token: %s\n", token.c_str()); return data; }
+                    { Logger::Error("[DESERIALIZE]::ERROR - vertex - Expected Token: '},' Received Token: %s\n", token.c_str()); return false; }
             }
 
         if (ss >> token && token != "\"indices\":[")
-            { Logger::Error("[DESERIALIZE]::ERROR - indices - Expected Token: \"indices\":[ Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - indices - Expected Token: \"indices\":[ Received Token: %s\n", token.c_str()); return false; }
         
         // Deserialize indices
         while (ss >> token && token != "],")
             {
-                try { data->indices.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
-                    { Logger::Error("[DESERIALIZE]::ERROR - indices - Received Token: %s\n", token.c_str()); return data; }
-                
-                if (ss.peek() == ',') { ss.ignore(); }
+                std::istringstream iss(token);
+                while(std::getline(iss, token, ','))
+                    {
+                        try { data->indices.push_back(std::stoi(token)); } catch (const std::invalid_argument&) 
+                            { Logger::Error("[DESERIALIZE]::ERROR - indices - Received Token: %s\n", token.c_str()); return false; }
+                    }
             }
 
         if (ss >> token && token != "\"offset\":[")
-            { Logger::Error("[DESERIALIZE]::ERROR - offset - Expected Token: \"offset\":[ Received Token: %s\n", token.c_str()); return data; }
+            { Logger::Error("[DESERIALIZE]::ERROR - offset - Expected Token: \"offset\":[ Received Token: %s\n", token.c_str()); return false; }
 
         // Deserialize offset
         while (ss >> token && token != "]")
@@ -104,7 +105,7 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
                 while(std::getline(vss, token, ','))
                     {
                         try { offset.push_back(std::stof(token)); } catch (const std::invalid_argument&) 
-                            { Logger::Error("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return data; }
+                            { Logger::Error("[DESERIALIZE]::ERROR - offset - Received Token: %s\n", token.c_str()); return false; }
                     }
 
                 data->offset = glm::ivec3(offset[0], offset[1], offset[2]);
@@ -112,10 +113,8 @@ inline Chunk* Chunk::Deserialize(const std::string& json)
 
         ss.clear();
         //data->log();
-        printf("Returning Chunk %d, %d, %d,\n", data->offset.x, data->offset.y, data->offset.z);
-
-        // Return deserialized Chunk
-        return data;
+        Logger::Debug("Loaded Chunk %d, %d, %d,\n", data->offset.x, data->offset.y, data->offset.z);
+        return true;
     }
 
 void OffloadChunk(std::pair<const glm::ivec3, Chunk>* chunk, const char* type)
@@ -163,7 +162,11 @@ bool LoadChunk(Chunk* MapChunk, const char* type, glm::ivec3 chunk)
         serializedData.assign((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
         // Deserialize data to Chunk object
-        MapChunk = Chunk::Deserialize(serializedData);
+        if (Chunk::Deserialize(serializedData, MapChunk));
+            { 
+                Logger::Debug("\t [LoadChunk]: Chunk Loaded Successfully.\n"); 
+                MapChunk->log();
+            }
 
         // TODO: Fix Format of Serialized Data
         ifs.close();
