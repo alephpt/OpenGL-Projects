@@ -33,11 +33,16 @@ Chunk* ChunkGenerator::Generate(glm::ivec3 offset, int chunkSize, ChunkConfig co
         _chunk_t->size = chunkSize;
         _chunk_t->scalar = config.scalar;
         _chunk_t->howSmooth = config.howSmooth;
-        _chunk_t->noiseThreshold = config.noiseThreshold;
-        _chunk_t->fillCutOff = config.fillCutOff;
+        // Scale the X and Y offsets to be between 0 and 2
+        float xy_offset = ((float)offset.x + (float)offset.y) / (float)chunkSize;
+        float zy_offset = ((float)offset.z + (float)offset.y) / (float)chunkSize;
+        _chunk_t->noiseThreshold = config.noiseThreshold + zy_offset;
+        _chunk_t->fillCutOff = config.fillCutOff + xy_offset;
+        //Logger::Debug("Noise Threshold: %f\n", _chunk_t->noiseThreshold);
+        //Logger::Debug("Fill Cut Off: %f\n", _chunk_t->fillCutOff);
         _chunk_t->chunkData->offset = offset;
 
-        srand(glfwGetTime() * getRandomSeed());
+        srand(glfwGetTime() * getRandomSeed() * (offset.x + offset.y + offset.z));
 
         _chunk_t->NoiseGeneration();
         

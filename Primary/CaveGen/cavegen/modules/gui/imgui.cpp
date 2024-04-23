@@ -134,13 +134,23 @@ void CaveGeneration:: imgui(bool show_window)
                     ImGui::SliderFloat(" - Fill Cutoff", &world.config.fillCutOff, 0.0f, 100.0f))
                     { 
                         world.fillMode = FillMode::Custom;
-                        world.reset();
                     }
 
                 ImGui::SliderInt(" - Visible Area", &world.area, 0, 5);
 
                 if(ImGui::Button("Regen"))
-                    { world.reset(); }
+                    { 
+                        world.reset(); 
+                    
+                        for (auto& chunk : chunk_buffers)
+                            {
+                                GLuint buffer = chunk.second;
+                                glDeleteBuffers(1, &buffer);
+                                glDeleteVertexArrays(1, &buffer);
+                            }
+
+                        chunk_buffers.clear();
+                    }
 
                 ImGui::SameLine();
                 if(ImGui::Button("Solid"))
